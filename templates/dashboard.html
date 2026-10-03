@@ -1,20 +1,25 @@
 {% extends 'base.html' %}
 
 {% block title %}Tổng Quan - TaskMaster{% endblock %}
-{% block header_title %}Tổng Quan Công Việc & Dự Án{% endblock %}
+{% block breadcrumb_current %}Tổng Quan{% endblock %}
+{% block page_title %}Tổng Quan{% endblock %}
+{% block page_subtitle %}Quản lý công việc và tiến độ dự án{% endblock %}
 
 {% block content %}
-<div class="row g-3 mb-4">
+<!-- KPI Cards -->
+<div class="row g-4 mb-4 mt-2">
     <!-- Total Tasks Card -->
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card metric-card shadow-sm border-0 border-start border-4 border-primary h-100">
-            <div class="card-body d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="text-muted small fw-bold text-uppercase">Tổng Số Công Việc</span>
-                    <h3 class="fw-bold text-primary mb-0 mt-1">{{ total_tasks }}</h3>
+        <div class="card card-hover border-0 h-100" style="background-color: var(--card-bg);">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="avatar-square text-muted" style="background-color: var(--card-hover);">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
                 </div>
-                <div class="metric-icon bg-primary bg-opacity-10 text-primary">
-                    <i class="fa-solid fa-tasks"></i>
+                <div>
+                    <h2 class="mb-1" style="color: var(--fg-heading);">{{ total_tasks }}</h2>
+                    <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing: 0.05em;">Tổng Công Việc</span>
                 </div>
             </div>
         </div>
@@ -22,14 +27,16 @@
 
     <!-- Completion Rate Card -->
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card metric-card shadow-sm border-0 border-start border-4 border-success h-100">
-            <div class="card-body d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="text-muted small fw-bold text-uppercase">Tỷ Lệ Hoàn Thành</span>
-                    <h3 class="fw-bold text-success mb-0 mt-1">{{ completion_rate }}%</h3>
+        <div class="card card-hover border-0 h-100" style="background-color: var(--card-bg);">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="avatar-square text-success" style="background-color: rgba(34, 197, 94, 0.1);">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
                 </div>
-                <div class="metric-icon bg-success bg-opacity-10 text-success">
-                    <i class="fa-solid fa-circle-check"></i>
+                <div>
+                    <h2 class="mb-1" style="color: var(--fg-heading);">{{ completion_rate }}%</h2>
+                    <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing: 0.05em;">Hoàn Thành</span>
                 </div>
             </div>
         </div>
@@ -37,14 +44,16 @@
 
     <!-- In Progress Tasks Card -->
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card metric-card shadow-sm border-0 border-start border-4 border-info h-100">
-            <div class="card-body d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="text-muted small fw-bold text-uppercase">Đang Thực Hiện</span>
-                    <h3 class="fw-bold text-info mb-0 mt-1">{{ in_progress_tasks }}</h3>
+        <div class="card card-hover border-0 h-100" style="background-color: var(--card-bg);">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="avatar-square text-primary" style="background-color: var(--primary-bg);">
+                        <i class="fa-solid fa-spinner"></i>
+                    </div>
                 </div>
-                <div class="metric-icon bg-info bg-opacity-10 text-info">
-                    <i class="fa-solid fa-spinner"></i>
+                <div>
+                    <h2 class="mb-1" style="color: var(--fg-heading);">{{ in_progress_tasks }}</h2>
+                    <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing: 0.05em;">Đang Làm</span>
                 </div>
             </div>
         </div>
@@ -52,14 +61,16 @@
 
     <!-- Overdue / Urgent Warning Card -->
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card metric-card shadow-sm border-0 border-start border-4 border-danger h-100">
-            <div class="card-body d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="text-muted small fw-bold text-uppercase">Cảnh Báo Trễ Hạn / Khẩn</span>
-                    <h3 class="fw-bold text-danger mb-0 mt-1">{{ overdue_tasks }} <small class="fs-6 fw-normal text-muted">trễ hạn</small></h3>
+        <div class="card card-hover border-0 h-100" style="background-color: var(--card-bg); border: 1px solid rgba(239, 68, 68, 0.3) !important;">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="avatar-square text-danger" style="background-color: rgba(239, 68, 68, 0.1);">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
                 </div>
-                <div class="metric-icon bg-danger bg-opacity-10 text-danger">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>
+                    <h2 class="text-danger mb-1">{{ overdue_tasks }}</h2>
+                    <span class="text-danger small fw-semibold text-uppercase" style="letter-spacing: 0.05em;">Trễ Hạn / Khẩn</span>
                 </div>
             </div>
         </div>
@@ -67,44 +78,44 @@
 </div>
 
 <div class="row g-4 mb-4">
-    <!-- Chart & Quick Actions -->
-    <div class="col-lg-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
-                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-chart-pie text-primary me-2"></i> Phân Bổ Trạng Thái Công Việc</h6>
-                <a href="{{ url_for('kanban') }}" class="btn btn-warning btn-sm fw-bold">
-                    <i class="fa-solid fa-table-columns me-1"></i> Bảng Kanban
-                </a>
+    <!-- Chart -->
+    <div class="col-lg-5">
+        <div class="card border-0 h-100">
+            <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center" style="background: transparent;">
+                <h6 class="mb-0 text-muted" style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em;">Phân Bổ Trạng Thái</h6>
             </div>
             <div class="card-body d-flex align-items-center justify-content-center">
-                <canvas id="taskStatusChart" style="max-height: 250px;"></canvas>
+                <canvas id="taskStatusChart" style="max-height: 240px;"></canvas>
             </div>
         </div>
     </div>
 
     <!-- Active Projects Progress -->
-    <div class="col-lg-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white py-3">
-                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-folder-open text-warning me-2"></i> Tiến Độ Các Dự Án</h6>
+    <div class="col-lg-7">
+        <div class="card border-0 h-100">
+            <div class="card-header border-0 pb-0" style="background: transparent;">
+                <h6 class="mb-0 text-muted" style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em;">Tiến Độ Dự Án</h6>
             </div>
             <div class="card-body">
-                <div class="d-flex flex-column gap-3">
+                <div class="d-flex flex-column gap-4 mt-2">
                     {% for p in projects %}
                     {% set done = p['done_tasks'] or 0 %}
                     {% set total = p['total_tasks'] or 0 %}
                     {% set percent = (done / total * 100) | round | int if total > 0 else 0 %}
                     <div>
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold text-dark"><i class="fa-solid fa-circle me-1" style="{{ 'color: ' ~ p['color'] ~ '; font-size: 0.75rem;' }}"></i> {{ p['name'] }}</span>
-                            <small class="text-muted">{{ done }}/{{ total }} tasks ({{ percent }}%)</small>
+                        <div class="d-flex justify-content-between align-items-end mb-2">
+                            <span class="fw-semibold" style="color: var(--fg-heading);"><i class="fa-solid fa-circle me-2" style="color: {{ p['color'] }}; font-size: 0.6rem;"></i>{{ p['name'] }}</span>
+                            <span class="fw-bold" style="color: var(--fg-heading); font-size: 0.85rem;">{{ percent }}% <span class="text-muted fw-normal ms-1">({{ done }}/{{ total }})</span></span>
                         </div>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar" role="progressbar" style="{{ 'width: ' ~ percent ~ '%; background-color: ' ~ p['color'] ~ ';' }}" aria-valuenow="{{ percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="progress" style="height: 6px; border-radius: var(--radius-full); background-color: var(--sidebar-bg);">
+                            <div class="progress-bar" role="progressbar" style="width: {{ percent }}%; background-color: {{ p['color'] }}; border-radius: var(--radius-full);" aria-valuenow="{{ percent }}" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
                     {% else %}
-                    <div class="text-center text-muted py-4">Chưa có dự án nào</div>
+                    <div class="text-center text-muted py-5 my-auto">
+                        <i class="fa-solid fa-folder-open fa-2x mb-3" style="opacity: 0.5;"></i>
+                        <p class="mb-0" style="font-size: 0.875rem;">Chưa có dự án nào đang hoạt động</p>
+                    </div>
                     {% endfor %}
                 </div>
             </div>
@@ -113,79 +124,69 @@
 </div>
 
 <!-- Recent Tasks Table -->
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-        <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> Công Việc Mới Nhất</h6>
-        <a href="{{ url_for('tasks') }}" class="btn btn-outline-primary btn-sm">Xem tất cả <i class="fa-solid fa-arrow-right ms-1"></i></a>
+<div class="card border-0">
+    <div class="card-header border-0 d-flex justify-content-between align-items-center" style="background: transparent;">
+        <h6 class="mb-0 text-muted" style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em;">Công Việc Mới Nhất</h6>
+        <a href="{{ url_for('tasks') }}" class="btn btn-sm text-muted" style="background-color: var(--sidebar-bg);">Xem tất cả <i class="fa-solid fa-arrow-right ms-1"></i></a>
     </div>
-    <div class="card-body p-0">
+    <div class="card-body p-0 mt-2">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-borderless align-middle mb-0">
                 <thead>
                     <tr>
-                        <th class="ps-3">Tên Công Việc</th>
+                        <th class="ps-4">Tên Công Việc</th>
                         <th>Dự Án</th>
-                        <th>Người Thực Hiện</th>
                         <th>Độ Ưu Tiên</th>
                         <th>Hạn Chót</th>
-                        <th>Trạng Thái</th>
-                        <th class="text-end pe-3">Thao Tác</th>
+                        <th class="text-end pe-4">Trạng Thái</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for task in recent_tasks %}
-                    <tr>
-                        <td class="ps-3">
-                            <a href="{{ url_for('task_detail', task_id=task['id']) }}" class="fw-bold text-dark text-decoration-none">
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td class="ps-4 py-3">
+                            <a href="{{ url_for('task_detail', task_id=task['id']) }}" class="text-decoration-none" style="color: var(--fg-heading); font-weight: 500;">
                                 {{ task['title'] }}
                             </a>
                         </td>
-                        <td>
+                        <td class="py-3">
                             {% if task['project_name'] %}
-                            <span class="badge" style="{{ 'background-color: ' ~ task['project_color'] ~ ';' }}">{{ task['project_name'] }}</span>
+                            <span class="badge" style="background-color: var(--sidebar-bg); color: var(--fg-muted); border: 1px solid var(--border-color);">{{ task['project_name'] }}</span>
                             {% else %}<span class="text-muted">-</span>{% endif %}
                         </td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="avatar-circle me-2" style="width: 24px; height: 24px; font-size: 0.65rem;">
-                                    {{ task['assignee_name'][0] if task['assignee_name'] else '?' }}
-                                </div>
-                                <small class="fw-semibold text-dark">{{ task['assignee_name'] or 'Chưa phân công' }}</small>
-                            </div>
-                        </td>
-                        <td>
+                        <td class="py-3">
                             {% if task['priority'] == 'Khẩn cấp' %}
-                                <span class="badge badge-priority badge-urgent">Khẩn cấp</span>
+                                <span class="badge text-danger" style="background-color: rgba(239, 68, 68, 0.1);">Khẩn cấp</span>
                             {% elif task['priority'] == 'Cao' %}
-                                <span class="badge badge-priority badge-high">Cao</span>
+                                <span class="badge text-primary" style="background-color: var(--primary-bg);">Cao</span>
                             {% elif task['priority'] == 'Trung bình' %}
-                                <span class="badge badge-priority badge-medium">Trung bình</span>
+                                <span class="badge text-warning" style="background-color: rgba(245, 158, 11, 0.1);">Trung bình</span>
                             {% else %}
-                                <span class="badge badge-priority badge-low">Thấp</span>
+                                <span class="badge text-success" style="background-color: rgba(34, 197, 94, 0.1);">Thấp</span>
                             {% endif %}
                         </td>
-                        <td class="small {% if task['due_date'] | is_overdue(task['status']) %}text-danger fw-bold{% else %}text-muted{% endif %}">
-                            {{ task['due_date'] | date_format }}
-                            {% if task['due_date'] | is_overdue(task['status']) %}<i class="fa-solid fa-circle-exclamation ms-1" title="Đã quá hạn"></i>{% endif %}
+                        <td class="py-3">
+                            {% if task['due_date'] %}
+                            <span class="text-muted small"><i class="fa-regular fa-clock me-1"></i>{{ task['due_date'] | date_format }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
                         </td>
-                        <td>
+                        <td class="text-end pe-4 py-3">
                             {% if task['status'] == 'Completed' %}
-                                <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Hoàn thành</span>
+                                <span class="text-success small fw-medium"><i class="fa-solid fa-check me-1"></i> Hoàn thành</span>
                             {% elif task['status'] == 'In Progress' %}
-                                <span class="badge bg-primary"><i class="fa-solid fa-spinner me-1"></i> Đang làm</span>
+                                <span class="text-primary small fw-medium"><i class="fa-solid fa-spinner me-1"></i> Đang làm</span>
                             {% else %}
-                                <span class="badge bg-secondary"><i class="fa-solid fa-clock me-1"></i> Cần làm</span>
+                                <span class="text-muted small fw-medium">Cần làm</span>
                             {% endif %}
-                        </td>
-                        <td class="text-end pe-3">
-                            <a href="{{ url_for('task_detail', task_id=task['id']) }}" class="btn btn-sm btn-outline-secondary">
-                                <i class="fa-solid fa-eye"></i> Chi tiết
-                            </a>
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">Chưa có công việc nào</td>
+                        <td colspan="5" class="text-center text-muted py-5">
+                            Chưa có công việc nào
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -201,17 +202,21 @@
     new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['Cần làm (To Do)', 'Đang làm (In Progress)', 'Hoàn thành (Completed)'],
+            labels: ['To Do', 'In Progress', 'Completed'],
             datasets: [{
                 data: [{{ todo_tasks }}, {{ in_progress_tasks }}, {{ completed_tasks }}],
-                backgroundColor: ['#64748b', '#4f46e5', '#10b981']
+                backgroundColor: ['#333333', '#FF7A00', '#22C55E'],
+                borderWidth: 0,
+                hoverOffset: 4
             }]
         },
         options: {
             responsive: true,
+            cutout: '80%',
             plugins: {
-                legend: { position: 'bottom' }
-            }
+                legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, color: '#888888', font: { family: 'Inter', size: 12 } } }
+            },
+            layout: { padding: 10 }
         }
     });
 </script>

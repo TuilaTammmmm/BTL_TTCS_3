@@ -4,46 +4,43 @@
 
 {% block content %}
 <div class="row justify-content-center align-items-center min-vh-100" style="margin-top: -3rem;">
-    <div class="col-md-5 col-lg-4">
-        <div class="card shadow-lg border-0 rounded-4">
-            <div class="card-body p-4 p-md-5">
-                <div class="text-center mb-4">
-                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 64px; height: 64px;">
-                        <i class="fa-solid fa-list-check fa-2x"></i>
+    <div class="col-md-6 col-lg-5 col-xl-4">
+        <div class="card" style="border-radius: var(--radius-lg); background-color: var(--sidebar-bg); border-color: var(--border-color);">
+            <div class="card-body p-5">
+                <div class="text-center mb-5">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-4" 
+                         style="width: 72px; height: 72px; border-radius: var(--radius-md); background-color: var(--primary); color: #fff;">
+                        <i class="fa-solid fa-bolt fa-2x"></i>
                     </div>
-                    <h4 class="fw-bold text-dark mb-1">TaskMaster</h4>
-                    <p class="text-muted small">Hệ Thống Quản Lý Công Việc & Dự Án</p>
+                    <h3 class="mb-2" style="letter-spacing: -0.02em; color: var(--fg-heading);">TaskMaster</h3>
+                    <p class="text-muted">Đăng nhập vào không gian làm việc</p>
                 </div>
 
                 <form action="{{ url_for('login') }}{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}" method="POST">
-                    <div class="mb-3">
-                        <label for="username" class="form-label font-weight-medium">Tên đăng nhập</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-user text-muted"></i></span>
-                            <input type="text" class="form-control bg-light border-start-0" id="username" name="username" placeholder="admin / pm_tuan / dev_nam" required autofocus>
-                        </div>
+                    <div class="mb-4">
+                        <label for="username" class="form-label" style="color: var(--fg-muted); font-size: 0.85rem;">Tên đăng nhập</label>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Nhập tên đăng nhập..." required autofocus>
                     </div>
 
                     <div class="mb-4">
-                        <label for="password" class="form-label font-weight-medium">Mật khẩu</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-lock text-muted"></i></span>
-                            <input type="password" class="form-control bg-light border-start-0" id="password" name="password" placeholder="Nhập mật khẩu" required>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label for="password" class="form-label mb-0" style="color: var(--fg-muted); font-size: 0.85rem;">Mật khẩu</label>
+                            <a href="#" class="small text-decoration-none" style="color: var(--primary);">Quên mật khẩu?</a>
                         </div>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Nhập mật khẩu..." required>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm mb-3">
-                        <i class="fa-solid fa-right-to-bracket me-2"></i> Đăng Nhập
+                    <button type="submit" class="btn btn-accent btn-lg w-100 mt-2 mb-4" style="border-radius: var(--radius-md); font-weight: 600;">
+                        Tiếp tục <i class="fa-solid fa-arrow-right ms-2"></i>
                     </button>
                 </form>
 
-                <div class="alert alert-info py-2 px-3 small rounded-3 mt-3 mb-0">
-                    <div class="fw-bold mb-1"><i class="fa-solid fa-key me-1"></i> Tài khoản mẫu dùng thử:</div>
-                    <ul class="mb-0 ps-3">
+                <div class="p-3" style="background-color: var(--card-bg); border: 1px dashed var(--border-color); border-radius: var(--radius-md);">
+                    <div class="mb-2" style="color: var(--fg-heading); font-size: 0.85rem;"><i class="fa-solid fa-circle-info text-muted me-2"></i>Tài khoản mẫu:</div>
+                    <ul class="mb-0 ps-3 text-muted" style="line-height: 1.8; font-size: 0.8rem;">
                         <li><strong>Admin:</strong> admin / <code>admin123</code></li>
-                        <li><strong>Project Manager:</strong> pm_tuan / <code>123456</code></li>
-                        <li><strong>Developer:</strong> dev_nam / <code>123456</code></li>
-                        <li><strong>Designer:</strong> designer_lan / <code>123456</code></li>
+                        <li><strong>PM:</strong> pm_tuan / <code>123456</code></li>
+                        <li><strong>Dev:</strong> dev_nam / <code>123456</code></li>
                     </ul>
                 </div>
             </div>

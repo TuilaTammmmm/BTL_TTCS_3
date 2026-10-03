@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}TaskMaster - Quản Lý Công Việc & Dự Án{% endblock %}</title>
+    <title>{% block title %}TaskMaster{% endblock %}</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
     <!-- Chart.js -->
@@ -20,87 +20,107 @@
     <div class="d-flex">
         {% if session.get('user_id') %}
         <!-- Sidebar Navigation -->
-        <aside class="sidebar d-flex flex-column p-3">
-            <a href="{{ url_for('dashboard') }}" class="d-flex align-items-center text-white text-decoration-none mb-3 px-2">
-                <i class="fa-solid fa-list-check fa-2x text-primary me-2"></i>
-                <div>
-                    <span class="fs-5 fw-bold d-block">TaskMaster</span>
-                    <small class="text-muted" style="font-size: 0.75rem;">Quản Lý Công Việc</small>
-                </div>
-            </a>
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('dashboard') }}" class="d-flex align-items-center text-decoration-none">
+                    <div class="avatar-square me-2" style="background-color: var(--primary);">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div>
+                        <span class="fw-bold text-white fs-6">TaskMaster</span>
+                    </div>
+                </a>
+            </div>
 
             {% if active_workspace_name %}
-            <div class="dropdown mb-2 px-2">
-                <button class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 text-white"
-                        style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15);"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fa-solid fa-building text-primary" style="font-size:0.8rem;"></i>
-                    <span class="text-truncate flex-grow-1" style="font-size:0.8rem; max-width:150px;">{{ active_workspace_name }}</span>
-                    <i class="fa-solid fa-chevron-down" style="font-size:0.65rem;"></i>
-                </button>
-                {% if user_workspaces %}
-                <ul class="dropdown-menu dropdown-menu-dark shadow">
-                    {% for ws in user_workspaces %}
-                    <li>
-                        <a class="dropdown-item small {% if ws['id'] == active_workspace_id %}active{% endif %}"
-                           href="{{ url_for('switch_workspace', ws_id=ws['id']) }}">
-                            <i class="fa-solid fa-circle me-1" style="font-size:0.5rem;"></i>
-                            {{ ws['name'] }}
-                            <span class="badge bg-secondary ms-1" style="font-size:0.6rem;">{{ ws['role'] }}</span>
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
+            <div class="px-2 mb-3">
+                <div class="dropdown">
+                    <button class="btn btn-primary w-100 text-start d-flex justify-content-between align-items-center"
+                            data-bs-toggle="dropdown" aria-expanded="false" style="padding: 0.5rem;">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-square" style="background-color: #E2703A; font-size: 0.6rem;">
+                                {{ active_workspace_name[0] | upper }}
+                            </div>
+                            <div class="d-flex flex-column">
+                                <span class="fw-medium text-white" style="font-size: 0.8rem; line-height: 1;">{{ active_workspace_name }}</span>
+                                <span class="text-muted" style="font-size: 0.65rem;">Chủ sở hữu</span>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-muted" style="font-size: 0.7rem;"></i>
+                    </button>
+                    {% if user_workspaces %}
+                    <ul class="dropdown-menu dropdown-menu-dark shadow-sm border border-secondary w-100" style="background-color: var(--card-bg);">
+                        {% for ws in user_workspaces %}
+                        <li>
+                            <a class="dropdown-item py-2 px-3 {% if ws['id'] == active_workspace_id %}active{% endif %}"
+                               href="{{ url_for('switch_workspace', ws_id=ws['id']) }}" style="font-size: 0.875rem;">
+                                {{ ws['name'] }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
             </div>
             {% endif %}
-            <hr class="text-secondary my-2">
-            <ul class="nav nav-pills flex-column mb-auto">
+
+            <div class="nav-section-title">Menu</div>
+            <ul class="nav flex-column mb-auto">
                 <li class="nav-item">
                     <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
-                        <i class="fa-solid fa-chart-pie"></i> Tổng Quan
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ url_for('kanban') }}" class="nav-link text-warning {% if request.endpoint == 'kanban' %}active{% endif %}">
-                        <i class="fa-solid fa-table-columns"></i> Bảng Kanban
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ url_for('tasks') }}" class="nav-link {% if request.endpoint in ['tasks', 'task_detail'] %}active{% endif %}">
-                        <i class="fa-solid fa-tasks"></i> Danh Sách Task
+                        <i class="fa-regular fa-square-check"></i> Việc của tôi
                     </a>
                 </li>
                 <li>
                     <a href="{{ url_for('projects') }}" class="nav-link {% if request.endpoint == 'projects' %}active{% endif %}">
-                        <i class="fa-solid fa-folder-open"></i> Dự Án
+                        <i class="fa-regular fa-folder"></i> Dự án
                     </a>
                 </li>
                 <li>
+                    <a href="{{ url_for('kanban') }}" class="nav-link {% if request.endpoint == 'kanban' %}active{% endif %}">
+                        <i class="fa-solid fa-chart-gantt"></i> Sprint & Kanban
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('tasks') }}" class="nav-link {% if request.endpoint in ['tasks', 'task_detail'] %}active{% endif %}">
+                        <i class="fa-solid fa-list-ul"></i> Danh sách
+                    </a>
+                </li>
+            </ul>
+
+            <div class="nav-section-title mt-2">Workspace</div>
+            <ul class="nav flex-column mb-auto">
+                <li>
                     <a href="{{ url_for('members') }}" class="nav-link {% if request.endpoint == 'members' %}active{% endif %}">
-                        <i class="fa-solid fa-users"></i> Thành Viên Team
+                        <i class="fa-solid fa-user-group"></i> Thành viên
                     </a>
                 </li>
                 <li>
                     <a href="{{ url_for('invitations') }}" class="nav-link {% if request.endpoint == 'invitations' %}active{% endif %}">
-                        <i class="fa-solid fa-envelope-open-text"></i> Lời Mời Workspace
+                        <i class="fa-regular fa-envelope"></i> Lời mời
                     </a>
                 </li>
             </ul>
-            <hr class="text-secondary">
-            <div class="px-2">
-                <div class="d-flex align-items-center mb-2">
-                    <div class="avatar-circle me-2">
-                        {{ current_user[0] | upper if current_user else 'U' }}
-                    </div>
-                    <div>
-                        <div class="fw-bold text-white small">{{ current_user }}</div>
-                        <span class="badge bg-secondary" style="font-size: 0.65rem;">{{ current_role | upper }}</span>
-                    </div>
+
+            <div class="mt-auto px-2">
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-decoration-none p-2 rounded" data-bs-toggle="dropdown" style="transition: var(--transition-snappy);">
+                        <div class="avatar-square me-2" style="background-color: var(--info); border-radius: 50%;">
+                            {{ current_user[0] | upper if current_user else 'U' }}
+                        </div>
+                        <div class="d-flex flex-column">
+                            <span class="fw-medium text-white" style="font-size: 0.85rem;">{{ current_user }}</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-up text-muted ms-auto" style="font-size: 0.7rem;"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark shadow-sm border border-secondary mb-2" style="background-color: var(--card-bg); width: 100%;">
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('logout') }}" style="font-size: 0.875rem;">
+                                <i class="fa-solid fa-arrow-right-from-bracket me-2 text-muted"></i> Đăng xuất
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm w-100 mt-2">
-                    <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Đăng xuất
-                </a>
             </div>
         </aside>
         {% endif %}
@@ -110,63 +130,55 @@
             {% if session.get('user_id') %}
             <!-- Top Navbar -->
             <header class="top-navbar d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <h5 class="mb-0 fw-bold text-secondary">
-                        {% block header_title %}Hệ Thống Quản Lý Công Việc & Dự Án{% endblock %}
-                    </h5>
+                <div class="d-flex align-items-center gap-2">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="#">{{ active_workspace_name or 'Workspace' }}</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">{% block breadcrumb_current %}Tổng Quan{% endblock %}</li>
+                        </ol>
+                    </nav>
                 </div>
                 <div class="d-flex align-items-center gap-3">
-                    <span class="badge bg-light text-dark border px-3 py-2">
-                        <i class="fa-regular fa-clock me-1 text-primary"></i> <span id="clock-display">--:--:--</span>
-                    </span>
+                    <button class="btn btn-sm btn-link text-muted text-decoration-none"><i class="fa-regular fa-moon"></i></button>
+                    <button class="btn btn-sm btn-link text-muted text-decoration-none"><i class="fa-regular fa-bell"></i></button>
                 </div>
             </header>
             {% endif %}
 
-            <!-- Alert Messages -->
+            <!-- Main Content Area -->
             <div class="container-fluid p-4">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
-                                {% if category == 'success' %}
-                                    <i class="fa-solid fa-circle-check me-2"></i>
-                                {% elif category == 'danger' %}
-                                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
-                                {% else %}
-                                    <i class="fa-solid fa-circle-info me-2"></i>
-                                {% endif %}
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
+                <!-- Toast Notifications Container -->
+                <div class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index: 1055;">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                {% set border_col = 'var(--success)' if category == 'success' else ('var(--danger)' if category == 'danger' else 'var(--primary)') %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show shadow-lg" role="alert" style="background-color: var(--card-bg); color: var(--fg-base); border: 1px solid var(--border-color); border-left: 4px solid {{ border_col }};">
+                                    {{ message }}
+                                    <button type="button" class="btn-close btn-close-white" style="filter: invert(1) grayscale(100%) brightness(200%);" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+
+                <div class="mb-4 d-flex justify-content-between align-items-end">
+                    <div>
+                        <h4 class="mb-1">{% block page_title %}Tổng Quan{% endblock %}</h4>
+                        <p class="text-muted small mb-0">{% block page_subtitle %}Quản lý công việc và tiến độ{% endblock %}</p>
+                    </div>
+                    <div>
+                        {% block page_actions %}{% endblock %}
+                    </div>
+                </div>
 
                 {% block content %}{% endblock %}
             </div>
-
-            <!-- Footer -->
-            <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
-                <div class="container">
-                    <span>TaskMaster BTL Thực Tập Cơ Sở 3 &copy; 2026. Python Flask + SQLite + Bootstrap.</span>
-                </div>
-            </footer>
         </div>
     </div>
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function updateClock() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('vi-VN');
-            const clockEl = document.getElementById('clock-display');
-            if (clockEl) clockEl.innerText = timeStr;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

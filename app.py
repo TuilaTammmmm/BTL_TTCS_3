@@ -363,6 +363,10 @@ def task_add():
     status      = request.form.get('status', 'To Do')
     due_date    = request.form.get('due_date') or None
 
+    if not project_id:
+        flash('Lỗi: Bạn phải chọn một dự án để tạo công việc!', 'danger')
+        return redirect(request.referrer or url_for('tasks'))
+
     if title and ws_id:
         now = now_iso()
         uid = session['user_id']
