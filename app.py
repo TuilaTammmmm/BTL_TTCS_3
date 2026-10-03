@@ -360,6 +360,10 @@ def task_add():
     project_id  = request.form.get('project_id') or None
     assignee_id = request.form.get('assignee_id') or None
     priority    = request.form.get('priority', 'Medium')
+    priority_map = {'Khẩn cấp': 'Urgent', 'Cao': 'High', 'Trung bình': 'Medium', 'Thấp': 'Low'}
+    priority    = priority_map.get(priority, priority)
+    if priority not in ('Urgent', 'High', 'Medium', 'Low'):
+        priority = 'Medium'
     status      = request.form.get('status', 'To Do')
     due_date    = request.form.get('due_date') or None
 
@@ -392,6 +396,10 @@ def task_edit(task_id):
     project_id  = request.form.get('project_id') or None
     assignee_id = request.form.get('assignee_id') or None
     priority    = request.form.get('priority', 'Medium')
+    priority_map = {'Khẩn cấp': 'Urgent', 'Cao': 'High', 'Trung bình': 'Medium', 'Thấp': 'Low'}
+    priority    = priority_map.get(priority, priority)
+    if priority not in ('Urgent', 'High', 'Medium', 'Low'):
+        priority = 'Medium'
     status      = request.form.get('status', 'To Do')
     due_date    = request.form.get('due_date') or None
     now = now_iso()

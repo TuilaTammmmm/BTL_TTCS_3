@@ -81,11 +81,11 @@
                             </div>
                         </td>
                         <td>
-                            {% if t['priority'] == 'Khẩn cấp' %}
+                            {% if t['priority'] in ('Urgent', 'Khẩn cấp') %}
                                 <span class="badge badge-priority badge-urgent">Khẩn cấp</span>
-                            {% elif t['priority'] == 'Cao' %}
+                            {% elif t['priority'] in ('High', 'Cao') %}
                                 <span class="badge badge-priority badge-high">Cao</span>
-                            {% elif t['priority'] == 'Trung bình' %}
+                            {% elif t['priority'] in ('Medium', 'Trung bình') %}
                                 <span class="badge badge-priority badge-medium">Trung bình</span>
                             {% else %}
                                 <span class="badge badge-priority badge-low">Thấp</span>
@@ -156,10 +156,10 @@
                                             <div class="col-md-4">
                                                 <label class="form-label fw-bold">Mức độ ưu tiên</label>
                                                 <select class="form-select" name="priority">
-                                                    <option value="Thấp" {% if t['priority'] == 'Thấp' %}selected{% endif %}>Thấp</option>
-                                                    <option value="Trung bình" {% if t['priority'] == 'Trung bình' %}selected{% endif %}>Trung bình</option>
-                                                    <option value="Cao" {% if t['priority'] == 'Cao' %}selected{% endif %}>Cao</option>
-                                                    <option value="Khẩn cấp" {% if t['priority'] == 'Khẩn cấp' %}selected{% endif %}>Khẩn cấp</option>
+                                                    <option value="Low" {% if t['priority'] in ('Low', 'Thấp') %}selected{% endif %}>Thấp</option>
+                                                    <option value="Medium" {% if t['priority'] in ('Medium', 'Trung bình') %}selected{% endif %}>Trung bình</option>
+                                                    <option value="High" {% if t['priority'] in ('High', 'Cao') %}selected{% endif %}>Cao</option>
+                                                    <option value="Urgent" {% if t['priority'] in ('Urgent', 'Khẩn cấp') %}selected{% endif %}>Khẩn cấp</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-4">
@@ -235,10 +235,10 @@
                         <div class="col-md-4">
                             <label class="form-label fw-bold">Mức độ ưu tiên</label>
                             <select class="form-select" name="priority">
-                                <option value="Thấp">Thấp</option>
-                                <option value="Trung bình" selected>Trung bình</option>
-                                <option value="Cao">Cao</option>
-                                <option value="Khẩn cấp">Khẩn cấp</option>
+                                <option value="Low">Thấp</option>
+                                <option value="Medium" selected>Trung bình</option>
+                                <option value="High">Cao</option>
+                                <option value="Urgent">Khẩn cấp</option>
                             </select>
                         </div>
                         <div class="col-md-4">

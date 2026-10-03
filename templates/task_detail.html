@@ -25,11 +25,11 @@
                         {% endif %}
                     </div>
                     <div>
-                        {% if task['priority'] == 'Khẩn cấp' %}
+                        {% if task['priority'] in ('Urgent', 'Khẩn cấp') %}
                             <span class="badge badge-priority badge-urgent fs-6">Khẩn cấp</span>
-                        {% elif task['priority'] == 'Cao' %}
+                        {% elif task['priority'] in ('High', 'Cao') %}
                             <span class="badge badge-priority badge-high fs-6">Cao</span>
-                        {% elif task['priority'] == 'Trung bình' %}
+                        {% elif task['priority'] in ('Medium', 'Trung bình') %}
                             <span class="badge badge-priority badge-medium fs-6">Trung bình</span>
                         {% else %}
                             <span class="badge badge-priority badge-low fs-6">Thấp</span>

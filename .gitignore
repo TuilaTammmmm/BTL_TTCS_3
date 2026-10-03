@@ -12,5 +12,8 @@ env/
 .vscode/
 .idea/
 
-# Database (optional - un-comment if you don't want to commit local db)
+# Database
+*.db-wal
+*.db-shm
 # *.db
+

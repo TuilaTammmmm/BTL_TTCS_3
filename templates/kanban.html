@@ -82,10 +82,10 @@
         border-radius: 50%;
         display: inline-block;
     }
-    .priority-Khẩn-cấp { background-color: var(--danger); }
-    .priority-Cao { background-color: var(--primary); }
-    .priority-Trung-bình { background-color: var(--warning); }
-    .priority-Thấp { background-color: var(--success); }
+    .priority-Khẩn-cấp, .priority-Urgent { background-color: var(--danger); }
+    .priority-Cao, .priority-High { background-color: var(--primary); }
+    .priority-Trung-bình, .priority-Medium { background-color: var(--warning); }
+    .priority-Thấp, .priority-Low { background-color: var(--success); }
 </style>
 {% endblock %}
 
@@ -224,10 +224,10 @@
                     <div class="mb-3">
                         <label class="form-label text-muted small">Độ ưu tiên</label>
                         <select class="form-select" name="priority">
-                            <option value="Thấp">Thấp</option>
-                            <option value="Trung bình" selected>Trung bình</option>
-                            <option value="Cao">Cao</option>
-                            <option value="Khẩn cấp">Khẩn cấp</option>
+                            <option value="Low">Thấp</option>
+                            <option value="Medium" selected>Trung bình</option>
+                            <option value="High">Cao</option>
+                            <option value="Urgent">Khẩn cấp</option>
                         </select>
                     </div>
                     <div class="mb-3">
