@@ -21,13 +21,39 @@
         {% if session.get('user_id') %}
         <!-- Sidebar Navigation -->
         <aside class="sidebar d-flex flex-column p-3">
-            <a href="{{ url_for('dashboard') }}" class="d-flex align-items-center text-white text-decoration-none mb-4 px-2">
+            <a href="{{ url_for('dashboard') }}" class="d-flex align-items-center text-white text-decoration-none mb-3 px-2">
                 <i class="fa-solid fa-list-check fa-2x text-primary me-2"></i>
                 <div>
                     <span class="fs-5 fw-bold d-block">TaskMaster</span>
                     <small class="text-muted" style="font-size: 0.75rem;">Quản Lý Công Việc</small>
                 </div>
             </a>
+
+            {% if active_workspace_name %}
+            <div class="dropdown mb-2 px-2">
+                <button class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 text-white"
+                        style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15);"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-building text-primary" style="font-size:0.8rem;"></i>
+                    <span class="text-truncate flex-grow-1" style="font-size:0.8rem; max-width:150px;">{{ active_workspace_name }}</span>
+                    <i class="fa-solid fa-chevron-down" style="font-size:0.65rem;"></i>
+                </button>
+                {% if user_workspaces %}
+                <ul class="dropdown-menu dropdown-menu-dark shadow">
+                    {% for ws in user_workspaces %}
+                    <li>
+                        <a class="dropdown-item small {% if ws['id'] == active_workspace_id %}active{% endif %}"
+                           href="{{ url_for('switch_workspace', ws_id=ws['id']) }}">
+                            <i class="fa-solid fa-circle me-1" style="font-size:0.5rem;"></i>
+                            {{ ws['name'] }}
+                            <span class="badge bg-secondary ms-1" style="font-size:0.6rem;">{{ ws['role'] }}</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endif %}
             <hr class="text-secondary my-2">
             <ul class="nav nav-pills flex-column mb-auto">
                 <li class="nav-item">
@@ -53,6 +79,11 @@
                 <li>
                     <a href="{{ url_for('members') }}" class="nav-link {% if request.endpoint == 'members' %}active{% endif %}">
                         <i class="fa-solid fa-users"></i> Thành Viên Team
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('invitations') }}" class="nav-link {% if request.endpoint == 'invitations' %}active{% endif %}">
+                        <i class="fa-solid fa-envelope-open-text"></i> Lời Mời Workspace
                     </a>
                 </li>
             </ul>

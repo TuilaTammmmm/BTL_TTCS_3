@@ -19,7 +19,7 @@
                     <div>
                         <h4 class="fw-bold text-dark mb-2">{{ task['title'] }}</h4>
                         {% if task['project_name'] %}
-                        <span class="badge px-3 py-2 fs-6" style="background-color: {{ task['project_color'] }};">
+                        <span class="badge px-3 py-2 fs-6" style="{{ 'background-color: ' ~ task['project_color'] ~ ';' }}">
                             <i class="fa-solid fa-folder me-1"></i> {{ task['project_name'] }}
                         </span>
                         {% endif %}
@@ -58,7 +58,6 @@
                                     {{ c['user_name'][0] }}
                                 </div>
                                 <span class="fw-bold text-dark me-2">{{ c['user_name'] }}</span>
-                                <span class="badge bg-secondary" style="font-size: 0.65rem;">{{ c['user_role'] }}</span>
                             </div>
                             <small class="text-muted">{{ c['created_at'] }}</small>
                         </div>
@@ -70,7 +69,7 @@
                 </div>
 
                 <!-- Add Comment Form -->
-                <form action="{{ url_for('task_add_comment', id=task['id']) }}" method="POST">
+                <form action="{{ url_for('task_add_comment', task_id=task['id']) }}" method="POST">
                     <div class="mb-2">
                         <textarea name="content" class="form-control" rows="3" placeholder="Viết bình luận, cập nhật tiến độ công việc..." required></textarea>
                     </div>
@@ -98,7 +97,9 @@
                             {% else %}bg-secondary text-white{% endif %}" onchange="this.form.submit()">
                             <option value="To Do" {% if task['status'] == 'To Do' %}selected{% endif %}>Cần làm (To Do)</option>
                             <option value="In Progress" {% if task['status'] == 'In Progress' %}selected{% endif %}>Đang làm (In Progress)</option>
+                            <option value="In Review" {% if task['status'] == 'In Review' %}selected{% endif %}>Đang review (In Review)</option>
                             <option value="Completed" {% if task['status'] == 'Completed' %}selected{% endif %}>Hoàn thành (Completed)</option>
+                            <option value="Cancelled" {% if task['status'] == 'Cancelled' %}selected{% endif %}>Đã hủy (Cancelled)</option>
                         </select>
                     </form>
                 </div>

@@ -69,7 +69,7 @@
                         </td>
                         <td>
                             {% if t['project_name'] %}
-                            <span class="badge" style="background-color: {{ t['project_color'] }};">{{ t['project_name'] }}</span>
+                            <span class="badge" style="{{ 'background-color: ' ~ t['project_color'] ~ ';' }}">{{ t['project_name'] }}</span>
                             {% else %}<span class="text-muted">-</span>{% endif %}
                         </td>
                         <td>

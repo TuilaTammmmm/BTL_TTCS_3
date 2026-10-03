@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Lời Mời Workspace - TaskMaster{% endblock %}
+{% block header_title %}Quản Lý Lời Mời Tham Gia Workspace{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-envelope-open-text text-primary me-2"></i> Danh Sách Lời Mời</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-3">Email Được Mời</th>
+                        <th>Vai Trò</th>
+                        <th>Người Mời</th>
+                        <th>Trạng Thái</th>
+                        <th>Hạn Hết</th>
+                        <th>Ngày Tạo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in invitations %}
+                    <tr>
+                        <td class="ps-3 fw-bold text-dark">
+                            <i class="fa-solid fa-envelope me-2 text-muted"></i>{{ inv['email'] }}
+                        </td>
+                        <td>
+                            {% if inv['role'] == 'Admin' %}
+                                <span class="badge bg-danger">Admin</span>
+                            {% elif inv['role'] == 'Member' %}
+                                <span class="badge bg-primary">Member</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Viewer</span>
+                            {% endif %}
+                        </td>
+                        <td class="small fw-semibold text-dark">{{ inv['invited_by_name'] }}</td>
+                        <td>
+                            {% if inv['status'] == 'Pending' %}
+                                <span class="badge bg-warning text-dark"><i class="fa-solid fa-clock me-1"></i>Đang chờ</span>
+                            {% elif inv['status'] == 'Accepted' %}
+                                <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i>Đã chấp nhận</span>
+                            {% elif inv['status'] == 'Declined' %}
+                                <span class="badge bg-danger"><i class="fa-solid fa-xmark me-1"></i>Đã từ chối</span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fa-solid fa-hourglass-end me-1"></i>Hết hạn</span>
+                            {% endif %}
+                        </td>
+                        <td class="small text-muted">{{ inv['expires_at'] | date_format }}</td>
+                        <td class="small text-muted">{{ inv['created_at'] | date_format }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-5">Chưa có lời mời nào.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
