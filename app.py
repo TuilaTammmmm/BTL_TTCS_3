@@ -4,38 +4,45 @@ import functools
 from werkzeug.security import check_password_hash, generate_password_hash
 from database import get_db_connection, init_db
 import os
-from datetime import datetime
+from datetime import datetime, date
 
 app = Flask(__name__)
-app.secret_key = 'super-secret-key-btl-ttcs3-tam'
+app.secret_key = 'taskmaster-super-secret-key-btl-ttcs3'
 
 # Ensure database exists on startup
 if not os.path.exists(os.path.join(os.path.dirname(__file__), 'app_data.db')):
     init_db()
 
-# Custom Jinja2 Filters
-@app.template_filter('currency_vnd')
-def currency_vnd_filter(amount):
-    if amount is None:
-        return "0 đ"
-    return f"{amount:,.0f}".replace(",", ".") + " đ"
-
-@app.template_filter('datetime_format')
-def datetime_format_filter(value):
+# Custom Jinja Filters
+@app.template_filter('date_format')
+def date_format_filter(value):
     if not value:
-        return ""
+        return "-"
     try:
-        dt = datetime.strptime(str(value), "%Y-%m-%d %H:%M:%S")
-        return dt.strftime("%d/%m/%Y %H:%M")
+        if isinstance(value, str):
+            dt = datetime.strptime(value.split()[0], "%Y-%m-%d")
+        else:
+            dt = value
+        return dt.strftime("%d/%m/%Y")
     except Exception:
         return str(value)
+
+@app.template_filter('is_overdue')
+def is_overdue_filter(due_date_str, status):
+    if not due_date_str or status == 'Completed':
+        return False
+    try:
+        due_date = datetime.strptime(str(due_date_str).split()[0], "%Y-%m-%d").date()
+        return due_date < date.today()
+    except Exception:
+        return False
 
 # Login decorator
 def login_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            flash('Vui lòng đăng nhập để truy cập trang này!', 'warning')
+            flash('Vui lòng đăng nhập để sử dụng ứng dụng!', 'warning')
             return redirect(url_for('login', next=request.url))
         return f(*args, **kwargs)
     return decorated_function
@@ -46,7 +53,8 @@ def inject_user():
     return dict(
         current_user=session.get('fullname'),
         current_role=session.get('role'),
-        current_username=session.get('username')
+        current_username=session.get('username'),
+        current_user_id=session.get('user_id')
     )
 
 # Authentication Routes
@@ -84,350 +92,336 @@ def logout():
 @login_required
 def dashboard():
     conn = get_db_connection()
+    today_str = date.today().strftime('%Y-%m-%d')
     
-    # Stats metrics
-    total_products = conn.execute("SELECT COUNT(*) FROM products").fetchone()[0]
-    total_orders = conn.execute("SELECT COUNT(*) FROM orders").fetchone()[0]
-    total_revenue = conn.execute("SELECT SUM(total_amount) FROM orders WHERE status = 'Hoàn thành'").fetchone()[0] or 0
-    low_stock_count = conn.execute("SELECT COUNT(*) FROM products WHERE stock_quantity <= 10").fetchone()[0]
+    # Task Statistics
+    total_tasks = conn.execute("SELECT COUNT(*) FROM tasks").fetchone()[0]
+    completed_tasks = conn.execute("SELECT COUNT(*) FROM tasks WHERE status = 'Completed'").fetchone()[0]
+    in_progress_tasks = conn.execute("SELECT COUNT(*) FROM tasks WHERE status = 'In Progress'").fetchone()[0]
+    todo_tasks = conn.execute("SELECT COUNT(*) FROM tasks WHERE status = 'To Do'").fetchone()[0]
     
-    # Recent orders
-    recent_orders = conn.execute('''
-        SELECT o.*, c.name as customer_name, u.fullname as staff_name
-        FROM orders o
-        LEFT JOIN customers c ON o.customer_id = c.id
-        LEFT JOIN users u ON o.user_id = u.id
-        ORDER BY o.created_at DESC LIMIT 5
+    overdue_tasks = conn.execute("SELECT COUNT(*) FROM tasks WHERE status != 'Completed' AND due_date < ?", (today_str,)).fetchone()[0]
+    urgent_tasks = conn.execute("SELECT COUNT(*) FROM tasks WHERE priority = 'Khẩn cấp' AND status != 'Completed'").fetchone()[0]
+
+    completion_rate = round((completed_tasks / total_tasks * 100)) if total_tasks > 0 else 0
+
+    # Recent Tasks
+    recent_tasks = conn.execute('''
+        SELECT t.*, p.name as project_name, p.color as project_color, u.fullname as assignee_name
+        FROM tasks t
+        LEFT JOIN projects p ON t.project_id = p.id
+        LEFT JOIN users u ON t.assignee_id = u.id
+        ORDER BY t.created_at DESC LIMIT 6
     ''').fetchall()
 
-    # Top selling products
-    top_products = conn.execute('''
-        SELECT p.name, SUM(oi.quantity) as total_qty, SUM(oi.subtotal) as total_val
-        FROM order_items oi
-        JOIN products p ON oi.product_id = p.id
-        JOIN orders o ON oi.order_id = o.id
-        WHERE o.status = 'Hoàn thành'
+    # Active Projects Progress
+    projects = conn.execute('''
+        SELECT p.*,
+               COUNT(t.id) as total_tasks,
+               SUM(CASE WHEN t.status = 'Completed' THEN 1 ELSE 0 END) as done_tasks
+        FROM projects p
+        LEFT JOIN tasks t ON p.id = t.project_id
         GROUP BY p.id
-        ORDER BY total_qty DESC LIMIT 5
+        ORDER BY p.id DESC
     ''').fetchall()
 
     conn.close()
 
     return render_template('dashboard.html',
-                           total_products=total_products,
-                           total_orders=total_orders,
-                           total_revenue=total_revenue,
-                           low_stock_count=low_stock_count,
-                           recent_orders=recent_orders,
-                           top_products=top_products)
+                           total_tasks=total_tasks,
+                           completed_tasks=completed_tasks,
+                           in_progress_tasks=in_progress_tasks,
+                           todo_tasks=todo_tasks,
+                           overdue_tasks=overdue_tasks,
+                           urgent_tasks=urgent_tasks,
+                           completion_rate=completion_rate,
+                           recent_tasks=recent_tasks,
+                           projects=projects)
 
-# Products Routes
-@app.route('/products')
+# Projects Routes
+@app.route('/projects')
 @login_required
-def products():
-    search = request.args.get('search', '').strip()
-    category_id = request.args.get('category_id', '')
+def projects():
+    conn = get_db_connection()
+    projects_list = conn.execute('''
+        SELECT p.*,
+               COUNT(t.id) as total_tasks,
+               SUM(CASE WHEN t.status = 'Completed' THEN 1 ELSE 0 END) as done_tasks,
+               SUM(CASE WHEN t.status = 'In Progress' THEN 1 ELSE 0 END) as in_progress_tasks,
+               SUM(CASE WHEN t.status = 'To Do' THEN 1 ELSE 0 END) as todo_tasks
+        FROM projects p
+        LEFT JOIN tasks t ON p.id = t.project_id
+        GROUP BY p.id
+        ORDER BY p.id DESC
+    ''').fetchall()
+    conn.close()
+    return render_template('projects.html', projects=projects_list)
+
+@app.route('/projects/add', methods=['POST'])
+@login_required
+def project_add():
+    name = request.form['name'].strip()
+    description = request.form.get('description', '').strip()
+    color = request.form.get('color', '#4f46e5')
+    status = request.form.get('status', 'Đang thực hiện')
+
+    if name:
+        conn = get_db_connection()
+        conn.execute("INSERT INTO projects (name, description, color, status) VALUES (?, ?, ?, ?)",
+                     (name, description, color, status))
+        conn.commit()
+        conn.close()
+        flash('Thêm dự án mới thành công!', 'success')
+
+    return redirect(url_for('projects'))
+
+@app.route('/projects/edit/<int:id>', methods=['POST'])
+@login_required
+def project_edit(id):
+    name = request.form['name'].strip()
+    description = request.form.get('description', '').strip()
+    color = request.form.get('color', '#4f46e5')
+    status = request.form.get('status', 'Đang thực hiện')
 
     conn = get_db_connection()
-    categories = conn.execute("SELECT * FROM categories ORDER BY name").fetchall()
+    conn.execute("UPDATE projects SET name = ?, description = ?, color = ?, status = ? WHERE id = ?",
+                 (name, description, color, status, id))
+    conn.commit()
+    conn.close()
+
+    flash('Cập nhật dự án thành công!', 'success')
+    return redirect(url_for('projects'))
+
+@app.route('/projects/delete/<int:id>', methods=['POST'])
+@login_required
+def project_delete(id):
+    conn = get_db_connection()
+    conn.execute("DELETE FROM projects WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
+    flash('Đã xóa dự án thành công.', 'info')
+    return redirect(url_for('projects'))
+
+# Tasks Routes (List View)
+@app.route('/tasks')
+@login_required
+def tasks():
+    search = request.args.get('search', '').strip()
+    project_id = request.args.get('project_id', '')
+    status = request.args.get('status', '')
+    priority = request.args.get('priority', '')
+
+    conn = get_db_connection()
+    projects_list = conn.execute("SELECT * FROM projects ORDER BY name").fetchall()
+    users_list = conn.execute("SELECT * FROM users ORDER BY fullname").fetchall()
 
     query = '''
-        SELECT p.*, c.name as category_name
-        FROM products p
-        LEFT JOIN categories c ON p.category_id = c.id
+        SELECT t.*, p.name as project_name, p.color as project_color,
+               u_assign.fullname as assignee_name, u_creator.fullname as creator_name
+        FROM tasks t
+        LEFT JOIN projects p ON t.project_id = p.id
+        LEFT JOIN users u_assign ON t.assignee_id = u_assign.id
+        LEFT JOIN users u_creator ON t.creator_id = u_creator.id
         WHERE 1=1
     '''
     params = []
 
     if search:
-        query += " AND (p.name LIKE ? OR p.code LIKE ?)"
+        query += " AND (t.title LIKE ? OR t.description LIKE ?)"
         params.extend([f"%{search}%", f"%{search}%"])
 
-    if category_id:
-        query += " AND p.category_id = ?"
-        params.append(category_id)
+    if project_id:
+        query += " AND t.project_id = ?"
+        params.append(project_id)
 
-    query += " ORDER BY p.id DESC"
-    products_list = conn.execute(query, params).fetchall()
+    if status:
+        query += " AND t.status = ?"
+        params.append(status)
+
+    if priority:
+        query += " AND t.priority = ?"
+        params.append(priority)
+
+    query += " ORDER BY CASE t.priority WHEN 'Khẩn cấp' THEN 1 WHEN 'Cao' THEN 2 WHEN 'Trung bình' THEN 3 ELSE 4 END, t.due_date ASC"
+    
+    tasks_list = conn.execute(query, params).fetchall()
     conn.close()
 
-    return render_template('products.html', products=products_list, categories=categories, search=search, category_id=category_id)
+    return render_template('tasks.html',
+                           tasks=tasks_list,
+                           projects=projects_list,
+                           users=users_list,
+                           search=search,
+                           project_id=project_id,
+                           status=status,
+                           priority=priority)
 
-@app.route('/products/add', methods=['POST'])
+@app.route('/tasks/add', methods=['POST'])
 @login_required
-def product_add():
-    code = request.form['code'].strip()
-    name = request.form['name'].strip()
-    category_id = request.form.get('category_id')
-    price = float(request.form.get('price', 0))
-    cost_price = float(request.form.get('cost_price', 0))
-    stock_quantity = int(request.form.get('stock_quantity', 0))
-    unit = request.form.get('unit', 'Cái').strip()
+def task_add():
+    title = request.form['title'].strip()
     description = request.form.get('description', '').strip()
+    project_id = request.form.get('project_id') or None
+    assignee_id = request.form.get('assignee_id') or None
+    priority = request.form.get('priority', 'Trung bình')
+    status = request.form.get('status', 'To Do')
+    due_date = request.form.get('due_date') or None
 
-    conn = get_db_connection()
-    try:
+    if title:
+        conn = get_db_connection()
         conn.execute('''
-            INSERT INTO products (code, name, category_id, price, cost_price, stock_quantity, unit, description)
+            INSERT INTO tasks (title, description, project_id, assignee_id, creator_id, priority, status, due_date)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (code, name, category_id, price, cost_price, stock_quantity, unit, description))
+        ''', (title, description, project_id, assignee_id, session['user_id'], priority, status, due_date))
         conn.commit()
-        flash('Thêm sản phẩm mới thành công!', 'success')
-    except sqlite3.IntegrityError:
-        flash('Mã sản phẩm đã tồn tại! Vui lòng chọn mã khác.', 'danger')
-    finally:
         conn.close()
+        flash('Tạo công việc mới thành công!', 'success')
 
-    return redirect(url_for('products'))
+    return redirect(request.referrer or url_for('tasks'))
 
-@app.route('/products/edit/<int:id>', methods=['POST'])
+@app.route('/tasks/edit/<int:id>', methods=['POST'])
 @login_required
-def product_edit(id):
-    name = request.form['name'].strip()
-    category_id = request.form.get('category_id')
-    price = float(request.form.get('price', 0))
-    cost_price = float(request.form.get('cost_price', 0))
-    stock_quantity = int(request.form.get('stock_quantity', 0))
-    unit = request.form.get('unit', 'Cái').strip()
+def task_edit(id):
+    title = request.form['title'].strip()
     description = request.form.get('description', '').strip()
+    project_id = request.form.get('project_id') or None
+    assignee_id = request.form.get('assignee_id') or None
+    priority = request.form.get('priority', 'Trung bình')
+    status = request.form.get('status', 'To Do')
+    due_date = request.form.get('due_date') or None
 
     conn = get_db_connection()
     conn.execute('''
-        UPDATE products
-        SET name = ?, category_id = ?, price = ?, cost_price = ?, stock_quantity = ?, unit = ?, description = ?
+        UPDATE tasks
+        SET title = ?, description = ?, project_id = ?, assignee_id = ?, priority = ?, status = ?, due_date = ?
         WHERE id = ?
-    ''', (name, category_id, price, cost_price, stock_quantity, unit, description, id))
+    ''', (title, description, project_id, assignee_id, priority, status, due_date, id))
     conn.commit()
     conn.close()
 
-    flash('Cập nhật thông tin sản phẩm thành công!', 'success')
-    return redirect(url_for('products'))
+    flash('Cập nhật công việc thành công!', 'success')
+    return redirect(request.referrer or url_for('tasks'))
 
-@app.route('/products/delete/<int:id>', methods=['POST'])
+@app.route('/tasks/quick_status/<int:id>', methods=['POST'])
 @login_required
-def product_delete(id):
+def task_quick_status(id):
+    new_status = request.form.get('status')
     conn = get_db_connection()
-    conn.execute("DELETE FROM products WHERE id = ?", (id,))
+    conn.execute("UPDATE tasks SET status = ? WHERE id = ?", (new_status, id))
     conn.commit()
     conn.close()
-    flash('Đã xóa sản phẩm thành công.', 'info')
-    return redirect(url_for('products'))
+    flash('Đã cập nhật trạng thái công việc!', 'info')
+    return redirect(request.referrer or url_for('tasks'))
 
-# Categories Routes
-@app.route('/categories', methods=['GET', 'POST'])
+@app.route('/tasks/delete/<int:id>', methods=['POST'])
 @login_required
-def categories():
+def task_delete(id):
     conn = get_db_connection()
-    if request.method == 'POST':
-        name = request.form['name'].strip()
-        description = request.form.get('description', '').strip()
-
-        if name:
-            conn.execute("INSERT INTO categories (name, description) VALUES (?, ?)", (name, description))
-            conn.commit()
-            flash('Thêm danh mục mới thành công!', 'success')
-            conn.close()
-            return redirect(url_for('categories'))
-
-    categories_list = conn.execute('''
-        SELECT c.*, COUNT(p.id) as product_count
-        FROM categories c
-        LEFT JOIN products p ON c.id = p.category_id
-        GROUP BY c.id
-        ORDER BY c.name
-    ''').fetchall()
-    conn.close()
-
-    return render_template('categories.html', categories=categories_list)
-
-@app.route('/categories/delete/<int:id>', methods=['POST'])
-@login_required
-def category_delete(id):
-    conn = get_db_connection()
-    conn.execute("DELETE FROM categories WHERE id = ?", (id,))
+    conn.execute("DELETE FROM tasks WHERE id = ?", (id,))
     conn.commit()
     conn.close()
-    flash('Đã xóa danh mục thành công.', 'info')
-    return redirect(url_for('categories'))
+    flash('Đã xóa công việc thành công.', 'info')
+    return redirect(request.referrer or url_for('tasks'))
 
-# Customers Routes
-@app.route('/customers', methods=['GET', 'POST'])
+# Kanban Board
+@app.route('/kanban')
 @login_required
-def customers():
+def kanban():
+    project_id = request.args.get('project_id', '')
+
     conn = get_db_connection()
-    if request.method == 'POST':
-        name = request.form['name'].strip()
-        phone = request.form.get('phone', '').strip()
-        email = request.form.get('email', '').strip()
-        address = request.form.get('address', '').strip()
+    projects_list = conn.execute("SELECT * FROM projects ORDER BY name").fetchall()
+    users_list = conn.execute("SELECT * FROM users ORDER BY fullname").fetchall()
 
-        if name:
-            try:
-                conn.execute("INSERT INTO customers (name, phone, email, address) VALUES (?, ?, ?, ?)",
-                             (name, phone, email, address))
-                conn.commit()
-                flash('Thêm khách hàng mới thành công!', 'success')
-            except sqlite3.IntegrityError:
-                flash('Số điện thoại khách hàng đã tồn tại!', 'danger')
-            conn.close()
-            return redirect(url_for('customers'))
+    query = '''
+        SELECT t.*, p.name as project_name, p.color as project_color, u.fullname as assignee_name
+        FROM tasks t
+        LEFT JOIN projects p ON t.project_id = p.id
+        LEFT JOIN users u ON t.assignee_id = u.id
+        WHERE 1=1
+    '''
+    params = []
+    if project_id:
+        query += " AND t.project_id = ?"
+        params.append(project_id)
 
-    customers_list = conn.execute('''
-        SELECT c.*, COUNT(o.id) as total_orders, COALESCE(SUM(o.total_amount), 0) as total_spent
-        FROM customers c
-        LEFT JOIN orders o ON c.id = o.customer_id AND o.status = 'Hoàn thành'
-        GROUP BY c.id
-        ORDER BY c.id DESC
-    ''').fetchall()
+    query += " ORDER BY t.due_date ASC"
+    all_tasks = conn.execute(query, params).fetchall()
     conn.close()
 
-    return render_template('customers.html', customers=customers_list)
+    todo_tasks = [t for t in all_tasks if t['status'] == 'To Do']
+    in_progress_tasks = [t for t in all_tasks if t['status'] == 'In Progress']
+    completed_tasks = [t for t in all_tasks if t['status'] == 'Completed']
 
-# Orders Routes
-@app.route('/orders')
+    return render_template('kanban.html',
+                           todo_tasks=todo_tasks,
+                           in_progress_tasks=in_progress_tasks,
+                           completed_tasks=completed_tasks,
+                           projects=projects_list,
+                           users=users_list,
+                           project_id=project_id)
+
+# Task Detail & Comments
+@app.route('/tasks/<int:id>')
 @login_required
-def orders():
+def task_detail(id):
     conn = get_db_connection()
-    orders_list = conn.execute('''
-        SELECT o.*, c.name as customer_name, c.phone as customer_phone, u.fullname as staff_name
-        FROM orders o
-        LEFT JOIN customers c ON o.customer_id = c.id
-        LEFT JOIN users u ON o.user_id = u.id
-        ORDER BY o.created_at DESC
-    ''').fetchall()
-    conn.close()
-    return render_template('orders.html', orders=orders_list)
-
-@app.route('/orders/create', methods=['GET', 'POST'])
-@login_required
-def order_create():
-    conn = get_db_connection()
-    if request.method == 'POST':
-        customer_id = request.form.get('customer_id')
-        payment_method = request.form.get('payment_method', 'Tiền mặt')
-        note = request.form.get('note', '')
-
-        # Products arrays from form
-        product_ids = request.form.getlist('product_id[]')
-        quantities = request.form.getlist('quantity[]')
-        prices = request.form.getlist('price[]')
-
-        if not product_ids:
-            flash('Vui lòng chọn ít nhất 1 sản phẩm cho đơn hàng!', 'danger')
-            return redirect(url_for('order_create'))
-
-        order_code = f"HD{datetime.now().strftime('%Y%m%d%H%M%S')}"
-        total_amount = 0
-
-        # Calculate total
-        for i in range(len(product_ids)):
-            qty = int(quantities[i])
-            price = float(prices[i])
-            total_amount += qty * price
-
-        # Insert order
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO orders (order_code, customer_id, user_id, total_amount, status, payment_method, note)
-            VALUES (?, ?, ?, ?, 'Hoàn thành', ?, ?)
-        ''', (order_code, customer_id if customer_id else None, session['user_id'], total_amount, payment_method, note))
-
-        order_id = cursor.lastrowid
-
-        # Insert order items and update stock
-        for i in range(len(product_ids)):
-            p_id = int(product_ids[i])
-            qty = int(quantities[i])
-            price = float(prices[i])
-            subtotal = qty * price
-
-            cursor.execute('''
-                INSERT INTO order_items (order_id, product_id, price, quantity, subtotal)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (order_id, p_id, price, qty, subtotal))
-
-            # Deduct stock
-            cursor.execute('''
-                UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?
-            ''', (qty, p_id))
-
-        conn.commit()
-        conn.close()
-        flash(f'Tạo đơn hàng {order_code} thành công!', 'success')
-        return redirect(url_for('order_detail', id=order_id))
-
-    products_list = conn.execute("SELECT * FROM products WHERE stock_quantity > 0 ORDER BY name").fetchall()
-    customers_list = conn.execute("SELECT * FROM customers ORDER BY name").fetchall()
-    conn.close()
-
-    return render_template('order_create.html', products=products_list, customers=customers_list)
-
-@app.route('/orders/<int:id>')
-@login_required
-def order_detail(id):
-    conn = get_db_connection()
-    order = conn.execute('''
-        SELECT o.*, c.name as customer_name, c.phone as customer_phone, c.address as customer_address, u.fullname as staff_name
-        FROM orders o
-        LEFT JOIN customers c ON o.customer_id = c.id
-        LEFT JOIN users u ON o.user_id = u.id
-        WHERE o.id = ?
+    task = conn.execute('''
+        SELECT t.*, p.name as project_name, p.color as project_color,
+               u_assign.fullname as assignee_name, u_creator.fullname as creator_name
+        FROM tasks t
+        LEFT JOIN projects p ON t.project_id = p.id
+        LEFT JOIN users u_assign ON t.assignee_id = u_assign.id
+        LEFT JOIN users u_creator ON t.creator_id = u_creator.id
+        WHERE t.id = ?
     ''', (id,)).fetchone()
 
-    if not order:
+    if not task:
         conn.close()
-        flash('Không tìm thấy đơn hàng!', 'danger')
-        return redirect(url_for('orders'))
+        flash('Không tìm thấy công việc!', 'danger')
+        return redirect(url_for('tasks'))
 
-    items = conn.execute('''
-        SELECT oi.*, p.name as product_name, p.code as product_code, p.unit
-        FROM order_items oi
-        JOIN products p ON oi.product_id = p.id
-        WHERE oi.order_id = ?
+    comments = conn.execute('''
+        SELECT c.*, u.fullname as user_name, u.role as user_role
+        FROM comments c
+        JOIN users u ON c.user_id = u.id
+        WHERE c.task_id = ?
+        ORDER BY c.created_at ASC
     ''', (id,)).fetchall()
     conn.close()
 
-    return render_template('order_detail.html', order=order, items=items)
+    return render_template('task_detail.html', task=task, comments=comments)
 
-@app.route('/orders/update_status/<int:id>', methods=['POST'])
+@app.route('/tasks/<int:id>/comment', methods=['POST'])
 @login_required
-def order_update_status(id):
-    new_status = request.form.get('status')
-    conn = get_db_connection()
-    conn.execute("UPDATE orders SET status = ? WHERE id = ?", (new_status, id))
-    conn.commit()
-    conn.close()
-    flash(f'Đã cập nhật trạng thái đơn hàng thành: {new_status}', 'info')
-    return redirect(url_for('order_detail', id=id))
+def task_add_comment(id):
+    content = request.form['content'].strip()
+    if content:
+        conn = get_db_connection()
+        conn.execute("INSERT INTO comments (task_id, user_id, content) VALUES (?, ?, ?)",
+                     (id, session['user_id'], content))
+        conn.commit()
+        conn.close()
+        flash('Đã thêm bình luận!', 'success')
+    return redirect(url_for('task_detail', id=id))
 
-# Reports & Analytics
-@app.route('/reports')
+# Team / Members
+@app.route('/members')
 @login_required
-def reports():
+def members():
     conn = get_db_connection()
-
-    # Total stats
-    revenue_data = conn.execute('''
-        SELECT strftime('%m/%Y', created_at) as month, SUM(total_amount) as total
-        FROM orders
-        WHERE status = 'Hoàn thành'
-        GROUP BY month
-        ORDER BY created_at ASC
+    members_list = conn.execute('''
+        SELECT u.*,
+               COUNT(t.id) as assigned_tasks,
+               SUM(CASE WHEN t.status = 'Completed' THEN 1 ELSE 0 END) as completed_tasks
+        FROM users u
+        LEFT JOIN tasks t ON u.id = t.assignee_id
+        GROUP BY u.id
+        ORDER BY u.fullname
     ''').fetchall()
-
-    category_data = conn.execute('''
-        SELECT c.name, SUM(oi.subtotal) as total_sales
-        FROM order_items oi
-        JOIN products p ON oi.product_id = p.id
-        JOIN categories c ON p.category_id = c.id
-        JOIN orders o ON oi.order_id = o.id
-        WHERE o.status = 'Hoàn thành'
-        GROUP BY c.id
-    ''').fetchall()
-
     conn.close()
-    return render_template('reports.html', revenue_data=revenue_data, category_data=category_data)
+    return render_template('members.html', members=members_list)
 
 if __name__ == '__main__':
-    print("Starting Sales & Inventory Management System (Flask)...")
+    print("Starting TaskMaster - Task Management System (Flask)...")
     app.run(debug=True, port=5000)

@@ -1,64 +1,64 @@
 {% extends 'base.html' %}
 
-{% block title %}Tổng Quan - Hệ Thống Quản Lý Bán Hàng{% endblock %}
-{% block header_title %}Tổng Quan Bán Hàng & Hoạt Động{% endblock %}
+{% block title %}Tổng Quan - TaskMaster{% endblock %}
+{% block header_title %}Tổng Quan Công Việc & Dự Án{% endblock %}
 
 {% block content %}
 <div class="row g-3 mb-4">
-    <!-- Total Revenue Card -->
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card metric-card shadow-sm border-0 border-start border-4 border-success h-100">
-            <div class="card-body d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="text-muted small fw-bold text-uppercase">Doanh Thu Tích Lũy</span>
-                    <h3 class="fw-bold text-success mb-0 mt-1">{{ total_revenue | currency_vnd }}</h3>
-                </div>
-                <div class="metric-icon bg-success bg-opacity-10 text-success">
-                    <i class="fa-solid fa-sack-dollar"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Total Orders Card -->
+    <!-- Total Tasks Card -->
     <div class="col-12 col-sm-6 col-xl-3">
         <div class="card metric-card shadow-sm border-0 border-start border-4 border-primary h-100">
             <div class="card-body d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-bold text-uppercase">Tổng Đơn Hàng</span>
-                    <h3 class="fw-bold text-primary mb-0 mt-1">{{ total_orders }}</h3>
+                    <span class="text-muted small fw-bold text-uppercase">Tổng Số Công Việc</span>
+                    <h3 class="fw-bold text-primary mb-0 mt-1">{{ total_tasks }}</h3>
                 </div>
                 <div class="metric-icon bg-primary bg-opacity-10 text-primary">
-                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <i class="fa-solid fa-tasks"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Total Products Card -->
+    <!-- Completion Rate Card -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card metric-card shadow-sm border-0 border-start border-4 border-success h-100">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-bold text-uppercase">Tỷ Lệ Hoàn Thành</span>
+                    <h3 class="fw-bold text-success mb-0 mt-1">{{ completion_rate }}%</h3>
+                </div>
+                <div class="metric-icon bg-success bg-opacity-10 text-success">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- In Progress Tasks Card -->
     <div class="col-12 col-sm-6 col-xl-3">
         <div class="card metric-card shadow-sm border-0 border-start border-4 border-info h-100">
             <div class="card-body d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-bold text-uppercase">Tổng Sản Phẩm</span>
-                    <h3 class="fw-bold text-info mb-0 mt-1">{{ total_products }}</h3>
+                    <span class="text-muted small fw-bold text-uppercase">Đang Thực Hiện</span>
+                    <h3 class="fw-bold text-info mb-0 mt-1">{{ in_progress_tasks }}</h3>
                 </div>
                 <div class="metric-icon bg-info bg-opacity-10 text-info">
-                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <i class="fa-solid fa-spinner"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Low Stock Warning Card -->
+    <!-- Overdue / Urgent Warning Card -->
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card metric-card shadow-sm border-0 border-start border-4 border-warning h-100">
+        <div class="card metric-card shadow-sm border-0 border-start border-4 border-danger h-100">
             <div class="card-body d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-bold text-uppercase">Cảnh Báo Sắp Hết Kho</span>
-                    <h3 class="fw-bold text-warning mb-0 mt-1">{{ low_stock_count }} <small class="fs-6 fw-normal text-muted">sản phẩm</small></h3>
+                    <span class="text-muted small fw-bold text-uppercase">Cảnh Báo Trễ Hạn / Khẩn</span>
+                    <h3 class="fw-bold text-danger mb-0 mt-1">{{ overdue_tasks }} <small class="fs-6 fw-normal text-muted">trễ hạn</small></h3>
                 </div>
-                <div class="metric-icon bg-warning bg-opacity-10 text-warning">
+                <div class="metric-icon bg-danger bg-opacity-10 text-danger">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
             </div>
@@ -67,41 +67,44 @@
 </div>
 
 <div class="row g-4 mb-4">
-    <!-- Quick Sales Call to Action & Chart -->
-    <div class="col-lg-7">
+    <!-- Chart & Quick Actions -->
+    <div class="col-lg-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
-                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-chart-bar text-primary me-2"></i> Top 5 Sản Phẩm Bán Chạy Nhất</h6>
-                <a href="{{ url_for('order_create') }}" class="btn btn-warning btn-sm fw-bold">
-                    <i class="fa-solid fa-cart-plus me-1"></i> Tạo Đơn Mới
+                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-chart-pie text-primary me-2"></i> Phân Bổ Trạng Thái Công Việc</h6>
+                <a href="{{ url_for('kanban') }}" class="btn btn-warning btn-sm fw-bold">
+                    <i class="fa-solid fa-table-columns me-1"></i> Bảng Kanban
                 </a>
             </div>
-            <div class="card-body">
-                <canvas id="topProductsChart" style="max-height: 280px;"></canvas>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <canvas id="taskStatusChart" style="max-height: 250px;"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- Top Products Summary List -->
-    <div class="col-lg-5">
+    <!-- Active Projects Progress -->
+    <div class="col-lg-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-white py-3">
-                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-ranking-star text-warning me-2"></i> Chi Tiết Top Sản Phẩm</h6>
+                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-folder-open text-warning me-2"></i> Tiến Độ Các Dự Án</h6>
             </div>
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush">
-                    {% for item in top_products %}
-                    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-                        <div>
-                            <div class="fw-semibold text-dark">{{ item['name'] }}</div>
-                            <small class="text-muted">Đã bán: <strong class="text-primary">{{ item['total_qty'] }}</strong> sản phẩm</small>
+            <div class="card-body">
+                <div class="d-flex flex-column gap-3">
+                    {% for p in projects %}
+                    {% set done = p['done_tasks'] or 0 %}
+                    {% set total = p['total_tasks'] or 0 %}
+                    {% set percent = (done / total * 100) | round | int if total > 0 else 0 %}
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold text-dark"><i class="fa-solid fa-circle me-1" style="color: {{ p['color'] }}; font-size: 0.75rem;"></i> {{ p['name'] }}</span>
+                            <small class="text-muted">{{ done }}/{{ total }} tasks ({{ percent }}%)</small>
                         </div>
-                        <span class="badge bg-success bg-opacity-10 text-success fw-bold px-3 py-2">
-                            {{ item['total_val'] | currency_vnd }}
-                        </span>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar" role="progressbar" style="width: {{ percent }}%; background-color: {{ p['color'] }};" aria-valuenow="{{ percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
                     </div>
                     {% else %}
-                    <div class="text-center text-muted py-4">Chưa có dữ liệu bán hàng</div>
+                    <div class="text-center text-muted py-4">Chưa có dự án nào</div>
                     {% endfor %}
                 </div>
             </div>
@@ -109,52 +112,80 @@
     </div>
 </div>
 
-<!-- Recent Orders Table -->
+<!-- Recent Tasks Table -->
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-        <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> Đơn Hàng Gần Đây</h6>
-        <a href="{{ url_for('orders') }}" class="btn btn-outline-primary btn-sm">Xem tất cả <i class="fa-solid fa-arrow-right ms-1"></i></a>
+        <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> Công Việc Mới Nhất</h6>
+        <a href="{{ url_for('tasks') }}" class="btn btn-outline-primary btn-sm">Xem tất cả <i class="fa-solid fa-arrow-right ms-1"></i></a>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead>
                     <tr>
-                        <th class="ps-3">Mã Đơn Hàng</th>
-                        <th>Khách Hàng</th>
-                        <th>Thời Gian</th>
-                        <th>Tổng Tiền</th>
-                        <th>Thanh Toán</th>
+                        <th class="ps-3">Tên Công Việc</th>
+                        <th>Dự Án</th>
+                        <th>Người Thực Hiện</th>
+                        <th>Độ Ưu Tiên</th>
+                        <th>Hạn Chót</th>
                         <th>Trạng Thái</th>
                         <th class="text-end pe-3">Thao Tác</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for order in recent_orders %}
+                    {% for task in recent_tasks %}
                     <tr>
-                        <td class="ps-3 fw-bold text-primary">{{ order['order_code'] }}</td>
-                        <td>{{ order['customer_name'] or 'Khách lẻ' }}</td>
-                        <td class="small text-muted">{{ order['created_at'] | datetime_format }}</td>
-                        <td class="fw-bold text-dark">{{ order['total_amount'] | currency_vnd }}</td>
-                        <td><span class="badge bg-light text-dark border">{{ order['payment_method'] }}</span></td>
+                        <td class="ps-3">
+                            <a href="{{ url_for('task_detail', id=task['id']) }}" class="fw-bold text-dark text-decoration-none">
+                                {{ task['title'] }}
+                            </a>
+                        </td>
                         <td>
-                            {% if order['status'] == 'Hoàn thành' %}
-                                <span class="badge bg-success">Hoàn thành</span>
-                            {% elif order['status'] == 'Đang xử lý' %}
-                                <span class="badge bg-warning text-dark">Đang xử lý</span>
+                            {% if task['project_name'] %}
+                            <span class="badge" style="background-color: {{ task['project_color'] }};">{{ task['project_name'] }}</span>
+                            {% else %}<span class="text-muted">-</span>{% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2" style="width: 24px; height: 24px; font-size: 0.65rem;">
+                                    {{ task['assignee_name'][0] if task['assignee_name'] else '?' }}
+                                </div>
+                                <small class="fw-semibold text-dark">{{ task['assignee_name'] or 'Chưa phân công' }}</small>
+                            </div>
+                        </td>
+                        <td>
+                            {% if task['priority'] == 'Khẩn cấp' %}
+                                <span class="badge badge-priority badge-urgent">Khẩn cấp</span>
+                            {% elif task['priority'] == 'Cao' %}
+                                <span class="badge badge-priority badge-high">Cao</span>
+                            {% elif task['priority'] == 'Trung bình' %}
+                                <span class="badge badge-priority badge-medium">Trung bình</span>
                             {% else %}
-                                <span class="badge bg-danger">Đã hủy</span>
+                                <span class="badge badge-priority badge-low">Thấp</span>
+                            {% endif %}
+                        </td>
+                        <td class="small {% if task['due_date'] | is_overdue(task['status']) %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                            {{ task['due_date'] | date_format }}
+                            {% if task['due_date'] | is_overdue(task['status']) %}<i class="fa-solid fa-circle-exclamation ms-1" title="Đã quá hạn"></i>{% endif %}
+                        </td>
+                        <td>
+                            {% if task['status'] == 'Completed' %}
+                                <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Hoàn thành</span>
+                            {% elif task['status'] == 'In Progress' %}
+                                <span class="badge bg-primary"><i class="fa-solid fa-spinner me-1"></i> Đang làm</span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fa-solid fa-clock me-1"></i> Cần làm</span>
                             {% endif %}
                         </td>
                         <td class="text-end pe-3">
-                            <a href="{{ url_for('order_detail', id=order['id']) }}" class="btn btn-sm btn-outline-secondary">
+                            <a href="{{ url_for('task_detail', id=task['id']) }}" class="btn btn-sm btn-outline-secondary">
                                 <i class="fa-solid fa-eye"></i> Chi tiết
                             </a>
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">Chưa có đơn hàng nào</td>
+                        <td colspan="7" class="text-center text-muted py-4">Chưa có công việc nào</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -166,28 +197,20 @@
 
 {% block scripts %}
 <script>
-    const topProdData = {
-        labels: [{% for item in top_products %}"{{ item['name'] }}",{% endfor %}],
-        datasets: [{
-            label: 'Số lượng bán',
-            data: [{% for item in top_products %}{{ item['total_qty'] }},{% endfor %}],
-            backgroundColor: ['#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6'],
-            borderRadius: 6
-        }]
-    };
-
-    const ctx = document.getElementById('topProductsChart').getContext('2d');
+    const ctx = document.getElementById('taskStatusChart').getContext('2d');
     new Chart(ctx, {
-        type: 'bar',
-        data: topProdData,
+        type: 'doughnut',
+        data: {
+            labels: ['Cần làm (To Do)', 'Đang làm (In Progress)', 'Hoàn thành (Completed)'],
+            datasets: [{
+                data: [{{ todo_tasks }}, {{ in_progress_tasks }}, {{ completed_tasks }}],
+                backgroundColor: ['#64748b', '#4f46e5', '#10b981']
+            }]
+        },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
             plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                legend: { position: 'bottom' }
             }
         }
     });

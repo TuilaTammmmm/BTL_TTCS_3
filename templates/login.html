@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Đăng Nhập - Hệ Thống Quản Lý Bán Hàng{% endblock %}
+{% block title %}Đăng Nhập - TaskMaster{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center align-items-center min-vh-100" style="margin-top: -3rem;">
@@ -9,10 +9,10 @@
             <div class="card-body p-4 p-md-5">
                 <div class="text-center mb-4">
                     <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 64px; height: 64px;">
-                        <i class="fa-solid fa-store fa-2x"></i>
+                        <i class="fa-solid fa-list-check fa-2x"></i>
                     </div>
-                    <h4 class="fw-bold text-dark mb-1">Đăng Nhập</h4>
-                    <p class="text-muted small">Hệ Thống Quản Lý Bán Hàng BTL TTCS3</p>
+                    <h4 class="fw-bold text-dark mb-1">TaskMaster</h4>
+                    <p class="text-muted small">Hệ Thống Quản Lý Công Việc & Dự Án</p>
                 </div>
 
                 <form action="{{ url_for('login') }}{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}" method="POST">
@@ -20,7 +20,7 @@
                         <label for="username" class="form-label font-weight-medium">Tên đăng nhập</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-user text-muted"></i></span>
-                            <input type="text" class="form-control bg-light border-start-0" id="username" name="username" placeholder="Nhập admin hoặc nhanvien" required autofocus>
+                            <input type="text" class="form-control bg-light border-start-0" id="username" name="username" placeholder="admin / pm_tuan / dev_nam" required autofocus>
                         </div>
                     </div>
 
@@ -41,7 +41,9 @@
                     <div class="fw-bold mb-1"><i class="fa-solid fa-key me-1"></i> Tài khoản mẫu dùng thử:</div>
                     <ul class="mb-0 ps-3">
                         <li><strong>Admin:</strong> admin / <code>admin123</code></li>
-                        <li><strong>Nhân viên:</strong> nhanvien / <code>staff123</code></li>
+                        <li><strong>Project Manager:</strong> pm_tuan / <code>123456</code></li>
+                        <li><strong>Developer:</strong> dev_nam / <code>123456</code></li>
+                        <li><strong>Designer:</strong> designer_lan / <code>123456</code></li>
                     </ul>
                 </div>
             </div>

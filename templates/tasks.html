@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+
+{% block title %}Danh Sách Công Việc - TaskMaster{% endblock %}
+{% block header_title %}Quản Lý Danh Sách Công Việc{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('tasks') }}" class="row g-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                    <input type="text" name="search" class="form-control bg-light border-start-0" placeholder="Tìm kiếm tên hoặc nội dung task..." value="{{ search }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="project_id" class="form-select bg-light">
+                    <option value="">-- Tất cả dự án --</option>
+                    {% for proj in projects %}
+                    <option value="{{ proj['id'] }}" {% if project_id|string == proj['id']|string %}selected{% endif %}>{{ proj['name'] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-select bg-light">
+                    <option value="">-- Trạng thái --</option>
+                    <option value="To Do" {% if status == 'To Do' %}selected{% endif %}>Cần làm</option>
+                    <option value="In Progress" {% if status == 'In Progress' %}selected{% endif %}>Đang làm</option>
+                    <option value="Completed" {% if status == 'Completed' %}selected{% endif %}>Hoàn thành</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1"><i class="fa-solid fa-filter me-1"></i> Lọc</button>
+                <a href="{{ url_for('tasks') }}" class="btn btn-outline-secondary"><i class="fa-solid fa-rotate-left"></i></a>
+                <button type="button" class="btn btn-success text-nowrap" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                    <i class="fa-solid fa-plus me-1"></i> Tạo Task
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Task Table Card -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-3">Tên Công Việc</th>
+                        <th>Dự Án</th>
+                        <th>Phân Công</th>
+                        <th>Độ Ưu Tiên</th>
+                        <th>Hạn Chót</th>
+                        <th>Trạng Thái</th>
+                        <th class="text-end pe-3">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in tasks %}
+                    <tr>
+                        <td class="ps-3">
+                            <a href="{{ url_for('task_detail', id=t['id']) }}" class="fw-bold text-dark text-decoration-none">
+                                {{ t['title'] }}
+                            </a>
+                            {% if t['description'] %}
+                            <div class="small text-muted text-truncate d-block" style="max-width: 300px;">{{ t['description'] }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if t['project_name'] %}
+                            <span class="badge" style="background-color: {{ t['project_color'] }};">{{ t['project_name'] }}</span>
+                            {% else %}<span class="text-muted">-</span>{% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2" style="width: 26px; height: 26px; font-size: 0.7rem;">
+                                    {{ t['assignee_name'][0] if t['assignee_name'] else '?' }}
+                                </div>
+                                <small class="fw-semibold text-dark">{{ t['assignee_name'] or 'Chưa phân công' }}</small>
+                            </div>
+                        </td>
+                        <td>
+                            {% if t['priority'] == 'Khẩn cấp' %}
+                                <span class="badge badge-priority badge-urgent">Khẩn cấp</span>
+                            {% elif t['priority'] == 'Cao' %}
+                                <span class="badge badge-priority badge-high">Cao</span>
+                            {% elif t['priority'] == 'Trung bình' %}
+                                <span class="badge badge-priority badge-medium">Trung bình</span>
+                            {% else %}
+                                <span class="badge badge-priority badge-low">Thấp</span>
+                            {% endif %}
+                        </td>
+                        <td class="small {% if t['due_date'] | is_overdue(t['status']) %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                            {{ t['due_date'] | date_format }}
+                            {% if t['due_date'] | is_overdue(t['status']) %}<i class="fa-solid fa-circle-exclamation ms-1" title="Đã quá hạn"></i>{% endif %}
+                        </td>
+                        <td>
+                            <!-- Quick Status Form -->
+                            <form action="{{ url_for('task_quick_status', id=t['id']) }}" method="POST" class="d-inline">
+                                <select name="status" class="form-select form-select-sm d-inline-block w-auto border-0 fw-semibold 
+                                    {% if t['status'] == 'Completed' %}bg-success-subtle text-success
+                                    {% elif t['status'] == 'In Progress' %}bg-primary-subtle text-primary
+                                    {% else %}bg-secondary-subtle text-secondary{% endif %}" onchange="this.form.submit()">
+                                    <option value="To Do" {% if t['status'] == 'To Do' %}selected{% endif %}>Cần làm</option>
+                                    <option value="In Progress" {% if t['status'] == 'In Progress' %}selected{% endif %}>Đang làm</option>
+                                    <option value="Completed" {% if t['status'] == 'Completed' %}selected{% endif %}>Hoàn thành</option>
+                                </select>
+                            </form>
+                        </td>
+                        <td class="text-end pe-3">
+                            <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editTaskModal{{ t['id'] }}">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <form action="{{ url_for('task_delete', id=t['id']) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa task này?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <!-- Edit Task Modal -->
+                    <div class="modal fade" id="editTaskModal{{ t['id'] }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <form action="{{ url_for('task_edit', id=t['id']) }}" method="POST">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title fw-bold"><i class="fa-solid fa-pen-to-square text-primary me-2"></i> Sửa Công Việc</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <label class="form-label fw-bold">Tên công việc *</label>
+                                                <input type="text" class="form-control" name="title" value="{{ t['title'] }}" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Dự án</label>
+                                                <select class="form-select" name="project_id">
+                                                    <option value="">-- Chọn dự án --</option>
+                                                    {% for p in projects %}
+                                                    <option value="{{ p['id'] }}" {% if t['project_id'] == p['id'] %}selected{% endif %}>{{ p['name'] }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Người thực hiện</label>
+                                                <select class="form-select" name="assignee_id">
+                                                    <option value="">-- Chưa phân công --</option>
+                                                    {% for u in users %}
+                                                    <option value="{{ u['id'] }}" {% if t['assignee_id'] == u['id'] %}selected{% endif %}>{{ u['fullname'] }} ({{ u['role'] }})</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold">Mức độ ưu tiên</label>
+                                                <select class="form-select" name="priority">
+                                                    <option value="Thấp" {% if t['priority'] == 'Thấp' %}selected{% endif %}>Thấp</option>
+                                                    <option value="Trung bình" {% if t['priority'] == 'Trung bình' %}selected{% endif %}>Trung bình</option>
+                                                    <option value="Cao" {% if t['priority'] == 'Cao' %}selected{% endif %}>Cao</option>
+                                                    <option value="Khẩn cấp" {% if t['priority'] == 'Khẩn cấp' %}selected{% endif %}>Khẩn cấp</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold">Trạng thái</label>
+                                                <select class="form-select" name="status">
+                                                    <option value="To Do" {% if t['status'] == 'To Do' %}selected{% endif %}>Cần làm (To Do)</option>
+                                                    <option value="In Progress" {% if t['status'] == 'In Progress' %}selected{% endif %}>Đang làm (In Progress)</option>
+                                                    <option value="Completed" {% if t['status'] == 'Completed' %}selected{% endif %}>Hoàn thành (Completed)</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold">Hạn chót (Due Date)</label>
+                                                <input type="date" class="form-control" name="due_date" value="{{ t['due_date'] }}">
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label fw-bold">Mô tả chi tiết</label>
+                                                <textarea class="form-control" name="description" rows="3">{{ t['description'] }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i> Lưu thay đổi</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">Không tìm thấy công việc nào phù hợp.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="{{ url_for('task_add') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-circle-plus text-success me-2"></i> Thêm Công Việc Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Tên công việc *</label>
+                            <input type="text" class="form-control" name="title" placeholder="Nhập tiêu đề task..." required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Dự án</label>
+                            <select class="form-select" name="project_id">
+                                <option value="">-- Chọn dự án --</option>
+                                {% for p in projects %}
+                                <option value="{{ p['id'] }}">{{ p['name'] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Người thực hiện</label>
+                            <select class="form-select" name="assignee_id">
+                                <option value="">-- Chưa phân công --</option>
+                                {% for u in users %}
+                                <option value="{{ u['id'] }}">{{ u['fullname'] }} ({{ u['role'] }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Mức độ ưu tiên</label>
+                            <select class="form-select" name="priority">
+                                <option value="Thấp">Thấp</option>
+                                <option value="Trung bình" selected>Trung bình</option>
+                                <option value="Cao">Cao</option>
+                                <option value="Khẩn cấp">Khẩn cấp</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Trạng thái ban đầu</label>
+                            <select class="form-select" name="status">
+                                <option value="To Do" selected>Cần làm (To Do)</option>
+                                <option value="In Progress">Đang làm (In Progress)</option>
+                                <option value="Completed">Hoàn thành (Completed)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Hạn chót (Due Date)</label>
+                            <input type="date" class="form-control" name="due_date">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Mô tả chi tiết</label>
+                            <textarea class="form-control" name="description" rows="3" placeholder="Chi tiết yêu cầu công việc..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-plus me-1"></i> Tạo Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

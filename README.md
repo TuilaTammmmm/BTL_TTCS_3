@@ -1,119 +1,181 @@
-# BTL Thực Tập Cơ Sở 3 - Hệ Thống Quản Lý Bán Hàng & Tồn Kho (Flask + SQLite + Jinja2 + Bootstrap)
+# 📘 TaskMaster - Hướng Dẫn Cài Đặt & Phát Triển Ứng Dụng Quản Lý Công Việc (Python Flask + SQLite)
 
-Hệ thống Quản lý Bán hàng & Tồn kho chuyên nghiệp được phát triển cho Bài Tập Lớn Thực Tập Cơ Sở 3 (BTL TTCS3) bằng ngôn ngữ **Python**, framework **Flask**, cơ sở dữ liệu **SQLite**, bộ sinh giao diện **Jinja2** và thiết kế hiện đại với **Bootstrap 5**.
-
----
-
-## 🚀 Tính Năng Nổi Bật
-
-1. **Quản Lý Đăng Nhập & Phân Quyền (Authentication & Sessions)**:
-   - Đăng nhập bảo mật với mật khẩu mã hóa `Werkzeug (PBKDF2/SHA256)`.
-   - Phân quyền tài khoản `Admin` và `Staff` (Nhân viên).
-   - Tự động lưu và theo dõi phiên đăng nhập (`Session`).
-
-2. **Bảng Điều Khiển Tổng Quan (Dashboard)**:
-   - Thống kê KPI thời gian thực: Doanh thu tích lũy, tổng số đơn hàng, tổng số sản phẩm, cảnh báo hàng sắp hết trong kho.
-   - Biểu đồ tương tác **Chart.js** xếp hạng Top 5 sản phẩm bán chạy nhất.
-   - Danh sách các đơn hàng vừa phát sinh.
-
-3. **Quản Lý Sản Phẩm & Tồn Kho (Products & Inventory)**:
-   - Tìm kiếm sản phẩm theo Mã SP (SKU) hoặc Tên sản phẩm.
-   - Lọc sản phẩm theo từng Danh mục.
-   - Thêm sản phẩm mới, chỉnh sửa thông tin, giá bán, giá vốn nhập, tồn kho, đơn vị tính.
-   - Cảnh báo tự động badge màu sắc đối với sản phẩm sắp hết kho ($\le 10$).
-
-4. **Quản Lý Danh Mục (Categories)**:
-   - Phân loại sản phẩm khoa học.
-   - Thống kê tự động số lượng sản phẩm thuộc mỗi danh mục.
-
-5. **Quản Lý Khách Hàng (Customers)**:
-   - Danh bạ thông tin khách hàng: Họ tên, số điện thoại, email, địa chỉ giao hàng.
-   - Thống kê tự động tổng số đơn hàng và tổng số tiền khách hàng đã mua.
-
-6. **Tạo Đơn Hàng Mới / Điểm Bán Hàng (POS - Point of Sale)**:
-   - Giao diện bán hàng linh hoạt, cho phép thêm dynamic nhiều dòng sản phẩm trong 1 đơn.
-   - Tự động tính tổng tiền thực tế theo thời gian thực bằng JavaScript.
-   - Kiểm tra và tự động giới hạn số lượng bán không vượt quá số lượng còn lại trong kho.
-   - Lựa chọn hình thức thanh toán (Tiền mặt, Chuyển khoản QR, Quẹt thẻ POS).
-
-7. **Chi Tiết Đơn Hàng & In Hóa Đơn (Order Invoice)**:
-   - Giao diện hóa đơn bán hàng chuẩn thiết kế in ấn (Printable Layout CSS `@media print`).
-   - Hỗ trợ nút In Hóa Đơn trực tiếp cho khách hàng.
-   - Cho phép cập nhật trạng thái đơn hàng: *Hoàn thành*, *Đang xử lý*, *Đã hủy*.
-
-8. **Báo Cáo & Phân Tích (Reports & Analytics)**:
-   - Biểu đồ Doughnut tỷ lệ doanh thu theo danh mục sản phẩm.
-   - Biểu đồ Bar biểu diễn doanh thu qua các tháng.
+**TaskMaster** là ứng dụng Quản Lý Công Việc & Dự Án (Task & Project Management Web Application) được phát triển cho **Bài Tập Lớn Thực Tập Cơ Sở 3 (BTL TTCS3)** bằng ngôn ngữ **Python**, framework **Flask**, cơ sở dữ liệu **SQLite**, bộ template **Jinja2** và giao diện **Bootstrap 5**.
 
 ---
 
-## 🛠 Hướng Dẫn Cài Đặt & Khởi Chạy
+## 🛠 Phần 1: Cài Đặt & Khởi Chạy Ứng Dụng
 
-### 1. Chuẩn bị Môi trường
-Yêu cầu hệ thống đã cài đặt **Python 3.8+**.
-
-### 2. Cài đặt Thư viện
-Mở Terminal / Command Prompt tại thư mục dự án và chạy:
-
-```bash
-# Tạo môi trường ảo (Virtualenv)
-python -m venv venv
-
-# Kích hoạt môi trường ảo (Windows PowerShell)
-.\venv\Scripts\Activate.ps1
-
-# Cài đặt thư viện yêu cầu
-pip install -r requirements.txt
-```
-
-### 3. Khởi tạo Cơ sở dữ liệu SQLite
-Chạy file `database.py` để tạo cơ sở dữ liệu `app_data.db` và nạp dữ liệu mẫu ban đầu:
-
-```bash
-python database.py
-```
-
-### 4. Khởi chạy Ứng dụng Flask
-Chạy file `app.py`:
-
-```bash
-python app.py
-```
-
-Truy cập ứng dụng trên trình duyệt web tại đường dẫn: **`http://127.0.0.1:5000`**
-
----
-
-## 🔑 Tài Khoản Đăng Nhập Mẫu
-
-| Vai trò | Tên đăng nhập | Mật khẩu | Quyền hạn |
-|---|---|---|---|
-| **Quản trị viên (Admin)** | `admin` | `admin123` | Toàn quyền quản lý hệ thống |
-| **Nhân viên (Staff)** | `nhanvien` | `staff123` | Tạo đơn hàng, xem danh sách sản phẩm & đơn hàng |
-
----
-
-## 📁 Cấu Trúc Thư Mục Dự Án
-
+### 1. Cấu Trúc Thư Mục Dự Án
 ```text
 BTL_TTCS_3/
-├── app.py                  # Server application chính (Routing, Authentication, Controllers)
-├── database.py             # Khởi tạo SQLite database schema & dữ liệu mẫu initial seed
-├── requirements.txt        # Thư viện phụ thuộc (Flask, Werkzeug, Jinja2, etc.)
-├── app_data.db             # Cơ sở dữ liệu SQLite (Tự động khởi tạo khi chạy lần đầu)
+├── app.py                  # Routing, Controller & Flask Server logic
+├── database.py             # Khởi tạo SQLite DB Schema & Dữ liệu mẫu (Seed Data)
+├── app_data.db             # File cơ sở dữ liệu SQLite
+├── requirements.txt        # Thư viện yêu cầu (Flask, Werkzeug, Jinja2)
 ├── static/
 │   └── css/
-│       └── style.css       # CSS tùy chỉnh bổ sung cho Bootstrap 5
+│       └── style.css       # Style tùy chỉnh (Kanban columns, priority badges, cards)
 ├── templates/
-│   ├── base.html           # Layout khung cơ bản (Sidebar, Header, Footer, Clock)
-│   ├── login.html          # Trang đăng nhập
-│   ├── dashboard.html      # Trang Tổng quan & KPI Dashboard
-│   ├── products.html       # Trang Quản lý Sản phẩm & Tồn kho
-│   ├── categories.html     # Trang Quản lý Danh mục sản phẩm
-│   ├── customers.html      # Trang Quản lý Khách hàng
-│   ├── orders.html         # Trang Quản lý Lịch sử Đơn hàng
-│   ├── order_create.html   # Trang Tạo Đơn Hàng Mới (POS)
-│   ├── order_detail.html   # Trang Chi tiết & In Hóa Đơn Bán Hàng
-│   └── reports.html        # Trang Báo Cáo Doanh Thu (Charts)
-└── README.md               # Tài liệu hướng dẫn dự án
+│   ├── base.html           # Khung chung (Sidebar, Navigation, Clock display)
+│   ├── login.html          # Trang Đăng nhập hệ thống
+│   ├── dashboard.html      # Trang Tổng quan KPI & Chart.js
+│   ├── tasks.html          # Trang Danh sách Task (Tìm kiếm, Lọc, CRUD, Quick Status)
+│   ├── kanban.html         # Bảng tương tác Kanban (To Do, In Progress, Completed)
+│   ├── projects.html       # Trang Quản lý Dự án & Tiến độ Progress Bar
+│   ├── task_detail.html    # Trang Chi tiết Task & Thảo luận (Comments thread)
+│   └── members.html        # Trang Quản lý Thành viên Team
+└── README.md               # Tài liệu hướng dẫn cài đặt & phát triển
 ```
+
+### 2. Các Bước Khởi Chạy
+
+1. **Tạo và kích hoạt môi trường ảo (Virtualenv)**:
+   ```bash
+   python -m venv venv
+   # Trên Windows PowerShell:
+   .\venv\Scripts\Activate.ps1
+   ```
+
+2. **Cài đặt các thư viện phụ thuộc**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Khởi tạo Cơ sở dữ liệu SQLite và Dữ liệu mẫu**:
+   ```bash
+   python database.py
+   ```
+
+4. **Khởi chạy Server Flask**:
+   ```bash
+   python app.py
+   ```
+   Truy cập trình duyệt tại: **`http://127.0.0.1:5000`**
+
+### 🔑 Tài Khoản Đăng Nhập Mẫu
+| Vai trò | Username | Password | Quyền hạn |
+|---|---|---|---|
+| **Admin** | `admin` | `admin123` | Quản trị toàn bộ dự án |
+| **Project Manager** | `pm_tuan` | `123456` | Quản lý công việc & phân công |
+| **Developer** | `dev_nam` | `123456` | Nhận công việc & Cập nhật tiến độ |
+| **Designer** | `designer_lan` | `123456` | Nhận công việc & Cập nhật tiến độ |
+
+---
+
+## 🚀 Phần 2: Hướng Dẫn Chi Tiết Phát Triển Ứng Dụng Quản Lý Công Việc Từ Đầu
+
+Dưới đây là từng bước giúp bạn nắm vững tư duy và kiến thức để tự xây dựng một ứng dụng web Quản lý công việc hoàn chỉnh bằng Python Flask.
+
+### Bước 1: Khởi Tạo Dự Án & Thiết Kế Cơ Sở Dữ Liệu (SQLite Schema)
+
+Một ứng dụng quản lý công việc chuẩn cần có 4 bảng chính:
+1. `users`: Lưu thông tin tài khoản (id, username, password_hash, fullname, role).
+2. `projects`: Lưu danh sách dự án (id, name, description, color, status).
+3. `tasks`: Lưu danh sách công việc (id, title, description, project_id, assignee_id, priority, status, due_date).
+4. `comments`: Lưu bình luận / trao đổi trong từng task (id, task_id, user_id, content).
+
+#### Ví dụ tạo bảng `tasks` trong Python (`database.py`):
+```python
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        project_id INTEGER,
+        assignee_id INTEGER,
+        priority TEXT NOT NULL DEFAULT 'Trung bình',
+        status TEXT NOT NULL DEFAULT 'To Do',
+        due_date DATE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects (id),
+        FOREIGN KEY (assignee_id) REFERENCES users (id)
+    )
+''')
+```
+
+### Bước 2: Thiết Lập Routing & Đăng Nhập (Authentication) trong `app.py`
+
+Sử dụng `session` trong Flask để ghi nhớ người dùng đã đăng nhập và dùng decorator `@login_required` để bảo vệ các route.
+
+```python
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from werkzeug.security import check_password_hash, generate_password_hash
+import functools
+
+app = Flask(__name__)
+app.secret_key = 'bi-mat-session-key'
+
+def login_required(f):
+    @functools.wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Vui lòng đăng nhập trước!', 'warning')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+```
+
+### Bước 3: Phát Triển Giao Diện Bảng Kanban (`templates/kanban.html`)
+
+Bảng Kanban phân chia công việc thành 3 cột chính:
+- **Cần làm (To Do)**
+- **Đang làm (In Progress)**
+- **Hoàn thành (Completed)**
+
+Truy vấn dữ liệu và phân loại danh sách task theo cột:
+```python
+@app.route('/kanban')
+@login_required
+def kanban():
+    conn = get_db_connection()
+    all_tasks = conn.execute("SELECT * FROM tasks").fetchall()
+    conn.close()
+
+    todo_tasks = [t for t in all_tasks if t['status'] == 'To Do']
+    in_progress_tasks = [t for t in all_tasks if t['status'] == 'In Progress']
+    completed_tasks = [t for t in all_tasks if t['status'] == 'Completed']
+
+    return render_template('kanban.html', todo=todo_tasks, in_progress=in_progress_tasks, completed=completed_tasks)
+```
+
+### Bước 4: Xử Lý Chuyển Trạng Thái Nhanh (Quick Status Update)
+
+Cho phép người dùng bấm nút bấm chuyển task giữa các cột Kanban:
+
+```python
+@app.route('/tasks/quick_status/<int:id>', methods=['POST'])
+@login_required
+def task_quick_status(id):
+    new_status = request.form.get('status')
+    conn = get_db_connection()
+    conn.execute("UPDATE tasks SET status = ? WHERE id = ?", (new_status, id))
+    conn.commit()
+    conn.close()
+    return redirect(request.referrer or url_for('kanban'))
+```
+
+### Bước 5: Viết Filter Custom Trong Jinja2 Để Kiểm Tra Task Quá Hạn
+
+Tạo filter kiểm tra task quá hạn ngay trên giao diện:
+
+```python
+@app.template_filter('is_overdue')
+def is_overdue_filter(due_date_str, status):
+    if not due_date_str or status == 'Completed':
+        return False
+    due_date = datetime.strptime(str(due_date_str).split()[0], "%Y-%m-%d").date()
+    return due_date < date.today()
+```
+
+Sử dụng trong template HTML:
+```html
+<span class="{% if task['due_date'] | is_overdue(task['status']) %}text-danger fw-bold{% endif %}">
+    {{ task['due_date'] }}
+</span>
+```
+
+---
+
+## 🎯 Tổng Kết
+Với kiến trúc trên, bạn đã có một **Ứng dụng Quản Lý Công Việc & Dự Án (TaskMaster)** chuẩn chỉnh, đầy đủ tính năng thực tế để báo cáo Bài Tập Lớn Thực Tập Cơ Sở 3 (BTL TTCS3).

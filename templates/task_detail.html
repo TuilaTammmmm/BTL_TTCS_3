@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Chi Tiết Công Việc - {{ task['title'] }}{% endblock %}
+{% block header_title %}Chi Tiết Công Việc{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{{ url_for('tasks') }}" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="fa-solid fa-arrow-left me-1"></i> Trở về danh sách task
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- Main Task Info -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h4 class="fw-bold text-dark mb-2">{{ task['title'] }}</h4>
+                        {% if task['project_name'] %}
+                        <span class="badge px-3 py-2 fs-6" style="background-color: {{ task['project_color'] }};">
+                            <i class="fa-solid fa-folder me-1"></i> {{ task['project_name'] }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {% if task['priority'] == 'Khẩn cấp' %}
+                            <span class="badge badge-priority badge-urgent fs-6">Khẩn cấp</span>
+                        {% elif task['priority'] == 'Cao' %}
+                            <span class="badge badge-priority badge-high fs-6">Cao</span>
+                        {% elif task['priority'] == 'Trung bình' %}
+                            <span class="badge badge-priority badge-medium fs-6">Trung bình</span>
+                        {% else %}
+                            <span class="badge badge-priority badge-low fs-6">Thấp</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <h6 class="fw-bold text-secondary text-uppercase small">Mô Tả Công Việc</h6>
+                <div class="bg-light p-3 rounded-3 text-dark mb-4" style="white-space: pre-line;">
+                    {{ task['description'] or 'Chưa có mô tả chi tiết cho công việc này.' }}
+                </div>
+
+                <!-- Discussion Comments Section -->
+                <h6 class="fw-bold text-secondary text-uppercase small mb-3">
+                    <i class="fa-solid fa-comments text-primary me-2"></i> Thảo Luận & Trao Đổi ({{ comments | length }})
+                </h6>
+
+                <div class="d-flex flex-column gap-3 mb-4">
+                    {% for c in comments %}
+                    <div class="comment-box">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2" style="width: 28px; height: 28px; font-size: 0.7rem;">
+                                    {{ c['user_name'][0] }}
+                                </div>
+                                <span class="fw-bold text-dark me-2">{{ c['user_name'] }}</span>
+                                <span class="badge bg-secondary" style="font-size: 0.65rem;">{{ c['user_role'] }}</span>
+                            </div>
+                            <small class="text-muted">{{ c['created_at'] }}</small>
+                        </div>
+                        <div class="text-dark small">{{ c['content'] }}</div>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3 small bg-light rounded-3">Chưa có bình luận nào. Hãy là người đầu tiên trao đổi!</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Add Comment Form -->
+                <form action="{{ url_for('task_add_comment', id=task['id']) }}" method="POST">
+                    <div class="mb-2">
+                        <textarea name="content" class="form-control" rows="3" placeholder="Viết bình luận, cập nhật tiến độ công việc..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm fw-bold">
+                        <i class="fa-solid fa-paper-plane me-1"></i> Gửi Bình Luận
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Meta Sidebar -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-circle-info text-primary me-2"></i> Thông Tin Chi Tiết</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="text-muted small fw-bold d-block mb-1">Trạng thái hiện tại</label>
+                    <form action="{{ url_for('task_quick_status', id=task['id']) }}" method="POST">
+                        <select name="status" class="form-select fw-bold 
+                            {% if task['status'] == 'Completed' %}bg-success text-white
+                            {% elif task['status'] == 'In Progress' %}bg-primary text-white
+                            {% else %}bg-secondary text-white{% endif %}" onchange="this.form.submit()">
+                            <option value="To Do" {% if task['status'] == 'To Do' %}selected{% endif %}>Cần làm (To Do)</option>
+                            <option value="In Progress" {% if task['status'] == 'In Progress' %}selected{% endif %}>Đang làm (In Progress)</option>
+                            <option value="Completed" {% if task['status'] == 'Completed' %}selected{% endif %}>Hoàn thành (Completed)</option>
+                        </select>
+                    </form>
+                </div>
+
+                <div class="mb-3">
+                    <label class="text-muted small fw-bold d-block mb-1">Người thực hiện (Assignee)</label>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle me-2">
+                            {{ task['assignee_name'][0] if task['assignee_name'] else '?' }}
+                        </div>
+                        <span class="fw-bold text-dark">{{ task['assignee_name'] or 'Chưa phân công' }}</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="text-muted small fw-bold d-block mb-1">Người tạo task (Creator)</label>
+                    <span class="fw-semibold text-dark">{{ task['creator_name'] or 'Hệ thống' }}</span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="text-muted small fw-bold d-block mb-1">Hạn chót (Due Date)</label>
+                    <span class="fw-bold {% if task['due_date'] | is_overdue(task['status']) %}text-danger{% else %}text-dark{% endif %}">
+                        <i class="fa-regular fa-calendar me-1"></i> {{ task['due_date'] | date_format }}
+                        {% if task['due_date'] | is_overdue(task['status']) %}(Đã quá hạn!){% endif %}
+                    </span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="text-muted small fw-bold d-block mb-1">Ngày tạo</label>
+                    <span class="small text-muted">{{ task['created_at'] }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
