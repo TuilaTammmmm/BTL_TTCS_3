@@ -60,7 +60,7 @@
                     {% for t in tasks %}
                     <tr>
                         <td class="ps-3">
-                            <a href="{{ url_for('task_detail', id=t['id']) }}" class="fw-bold text-dark text-decoration-none">
+                            <a href="{{ url_for('task_detail', task_id=t['id']) }}" class="fw-bold text-dark text-decoration-none">
                                 {{ t['title'] }}
                             </a>
                             {% if t['description'] %}
@@ -97,7 +97,7 @@
                         </td>
                         <td>
                             <!-- Quick Status Form -->
-                            <form action="{{ url_for('task_quick_status', id=t['id']) }}" method="POST" class="d-inline">
+                            <form action="{{ url_for('task_quick_status', task_id=t['id']) }}" method="POST" class="d-inline">
                                 <select name="status" class="form-select form-select-sm d-inline-block w-auto border-0 fw-semibold 
                                     {% if t['status'] == 'Completed' %}bg-success-subtle text-success
                                     {% elif t['status'] == 'In Progress' %}bg-primary-subtle text-primary
@@ -112,7 +112,7 @@
                             <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editTaskModal{{ t['id'] }}">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
-                            <form action="{{ url_for('task_delete', id=t['id']) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa task này?');">
+                            <form action="{{ url_for('task_delete', task_id=t['id']) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa task này?');">
                                 <button type="submit" class="btn btn-sm btn-outline-danger">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
@@ -124,7 +124,7 @@
                     <div class="modal fade" id="editTaskModal{{ t['id'] }}" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog modal-lg">
                             <div class="modal-content">
-                                <form action="{{ url_for('task_edit', id=t['id']) }}" method="POST">
+                                <form action="{{ url_for('task_edit', task_id=t['id']) }}" method="POST">
                                     <div class="modal-header">
                                         <h5 class="modal-title fw-bold"><i class="fa-solid fa-pen-to-square text-primary me-2"></i> Sửa Công Việc</h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

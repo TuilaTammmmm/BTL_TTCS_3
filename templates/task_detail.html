@@ -90,7 +90,7 @@
             <div class="card-body">
                 <div class="mb-3">
                     <label class="text-muted small fw-bold d-block mb-1">Trạng thái hiện tại</label>
-                    <form action="{{ url_for('task_quick_status', id=task['id']) }}" method="POST">
+                    <form action="{{ url_for('task_quick_status', task_id=task['id']) }}" method="POST">
                         <select name="status" class="form-select fw-bold 
                             {% if task['status'] == 'Completed' %}bg-success text-white
                             {% elif task['status'] == 'In Progress' %}bg-primary text-white
