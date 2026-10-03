@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Chi Tiết Đơn Hàng {{ order['order_code'] }} - Sales System{% endblock %}
+{% block header_title %}Chi Tiết Hóa Đơn Bán Hàng{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <a href="{{ url_for('orders') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Trở về danh sách đơn hàng
+    </a>
+    <div class="d-flex gap-2">
+        <button onclick="window.print()" class="btn btn-primary shadow-sm">
+            <i class="fa-solid fa-print me-1"></i> In Hóa Đơn
+        </button>
+    </div>
+</div>
+
+<!-- Invoice Card -->
+<div class="card invoice-card shadow-sm border-0">
+    <div class="card-body">
+        <!-- Invoice Header -->
+        <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4">
+            <div>
+                <h3 class="fw-bold text-primary mb-1"><i class="fa-solid fa-store me-2"></i> TTCS3 SALES MANAGEMENT</h3>
+                <div class="text-muted small">Địa chỉ: 123 Đường Cầu Giấy, Hà Nội | Hotline: 1900 6868</div>
+                <div class="text-muted small">Email: contact@ttcs3sales.vn</div>
+            </div>
+            <div class="text-end">
+                <h4 class="fw-bold text-dark mb-1">HÓA ĐƠN BÁN HÀNG</h4>
+                <div class="badge bg-light text-primary border fs-6 px-3 py-2 mb-2">{{ order['order_code'] }}</div>
+                <div class="text-muted small">Ngày lập: {{ order['created_at'] | datetime_format }}</div>
+            </div>
+        </div>
+
+        <!-- Customer & Order Meta Info -->
+        <div class="row mb-4">
+            <div class="col-6">
+                <h6 class="fw-bold text-uppercase text-muted small mb-2">Thông Tin Khách Hàng</h6>
+                <div class="fw-bold text-dark fs-6">{{ order['customer_name'] or 'Khách lẻ (Mua tại cửa hàng)' }}</div>
+                {% if order['customer_phone'] %}<div class="small text-muted"><i class="fa-solid fa-phone me-1"></i> {{ order['customer_phone'] }}</div>{% endif %}
+                {% if order['customer_address'] %}<div class="small text-muted"><i class="fa-solid fa-location-dot me-1"></i> {{ order['customer_address'] }}</div>{% endif %}
+            </div>
+            <div class="col-6 text-end">
+                <h6 class="fw-bold text-uppercase text-muted small mb-2">Thông Tin Đơn Hàng</h6>
+                <div class="small text-muted">Nhân viên bán hàng: <strong class="text-dark">{{ order['staff_name'] or 'Quản trị' }}</strong></div>
+                <div class="small text-muted">Phương thức thanh toán: <strong class="text-dark">{{ order['payment_method'] }}</strong></div>
+                <div class="small text-muted mt-1">
+                    Trạng thái: 
+                    {% if order['status'] == 'Hoàn thành' %}
+                        <span class="badge bg-success">Hoàn thành</span>
+                    {% elif order['status'] == 'Đang xử lý' %}
+                        <span class="badge bg-warning text-dark">Đang xử lý</span>
+                    {% else %}
+                        <span class="badge bg-danger">Đã hủy</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Line Items Table -->
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center" style="width: 50px;">STT</th>
+                        <th>Mã SP</th>
+                        <th>Tên Sản Phẩm</th>
+                        <th class="text-end">Đơn Giá</th>
+                        <th class="text-center">Số Lượng</th>
+                        <th class="text-end">Thành Tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td class="text-center">{{ loop.index }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ item['product_code'] }}</span></td>
+                        <td class="fw-bold text-dark">{{ item['product_name'] }}</td>
+                        <td class="text-end">{{ item['price'] | currency_vnd }}</td>
+                        <td class="text-center fw-semibold">{{ item['quantity'] }} {{ item['unit'] }}</td>
+                        <td class="text-end fw-bold text-primary">{{ item['subtotal'] | currency_vnd }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5" class="text-end fw-bold fs-5">Tổng Tiền Thanh Toán:</td>
+                        <td class="text-end fw-bold text-success fs-5">{{ order['total_amount'] | currency_vnd }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        {% if order['note'] %}
+        <div class="alert alert-light border small text-muted mb-4">
+            <strong>Ghi chú đơn hàng:</strong> {{ order['note'] }}
+        </div>
+        {% endif %}
+
+        <!-- Invoice Signatures -->
+        <div class="row text-center mt-5">
+            <div class="col-6">
+                <div class="fw-bold text-dark">Khách hàng</div>
+                <small class="text-muted">(Ký, ghi rõ họ tên)</small>
+                <div style="height: 60px;"></div>
+            </div>
+            <div class="col-6">
+                <div class="fw-bold text-dark">Người lập hóa đơn</div>
+                <small class="text-muted">(Ký, ghi rõ họ tên)</small>
+                <div class="mt-4 fw-bold text-primary">{{ order['staff_name'] or 'Quản trị viên' }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Status Change Form -->
+<div class="card border-0 shadow-sm mt-4 no-print">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+            <h6 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-pen-to-square text-warning me-2"></i> Cập Nhật Trạng Thái Đơn Hàng</h6>
+            <small class="text-muted">Chuyển trạng thái giữa "Hoàn thành", "Đang xử lý" hoặc "Đã hủy".</small>
+        </div>
+        <form action="{{ url_for('order_update_status', id=order['id']) }}" method="POST" class="d-flex gap-2">
+            <select name="status" class="form-select">
+                <option value="Hoàn thành" {% if order['status'] == 'Hoàn thành' %}selected{% endif %}>Hoàn thành</option>
+                <option value="Đang xử lý" {% if order['status'] == 'Đang xử lý' %}selected{% endif %}>Đang xử lý</option>
+                <option value="Đã hủy" {% if order['status'] == 'Đã hủy' %}selected{% endif %}>Đã hủy</option>
+            </select>
+            <button type="submit" class="btn btn-warning text-nowrap fw-bold">Cập Nhật</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

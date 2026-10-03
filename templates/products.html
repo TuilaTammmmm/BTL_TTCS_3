@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Quản Lý Sản Phẩm & Kho - Sales System{% endblock %}
+{% block header_title %}Quản Lý Sản Phẩm & Tồn Kho{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('products') }}" class="row g-3">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                    <input type="text" name="search" class="form-control bg-light border-start-0" placeholder="Tìm kiếm theo mã SP hoặc tên sản phẩm..." value="{{ search }}">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select name="category_id" class="form-select bg-light">
+                    <option value="">-- Tất cả danh mục --</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat['id'] }}" {% if category_id|string == cat['id']|string %}selected{% endif %}>{{ cat['name'] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1"><i class="fa-solid fa-filter me-1"></i> Lọc</button>
+                <a href="{{ url_for('products') }}" class="btn btn-outline-secondary"><i class="fa-solid fa-rotate-left"></i></a>
+                <button type="button" class="btn btn-success text-nowrap" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                    <i class="fa-solid fa-plus me-1"></i> Thêm SP
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Product Table Card -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-3">Mã SP</th>
+                        <th>Tên Sản Phẩm</th>
+                        <th>Danh Mục</th>
+                        <th>Giá Bán</th>
+                        <th>Giá Vốn</th>
+                        <th>Tồn Kho</th>
+                        <th>Đơn Vị</th>
+                        <th class="text-end pe-3">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in products %}
+                    <tr>
+                        <td class="ps-3"><span class="badge bg-light text-primary border fw-bold">{{ p['code'] }}</span></td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ p['name'] }}</div>
+                            {% if p['description'] %}<small class="text-muted text-truncate d-inline-block" style="max-width: 250px;">{{ p['description'] }}</small>{% endif %}
+                        </td>
+                        <td><span class="badge bg-info bg-opacity-10 text-info">{{ p['category_name'] or 'Chưa phân loại' }}</span></td>
+                        <td class="fw-bold text-success">{{ p['price'] | currency_vnd }}</td>
+                        <td class="text-muted small">{{ p['cost_price'] | currency_vnd }}</td>
+                        <td>
+                            {% if p['stock_quantity'] <= 5 %}
+                                <span class="badge bg-danger">{{ p['stock_quantity'] }} (Sắp hết)</span>
+                            {% elif p['stock_quantity'] <= 15 %}
+                                <span class="badge bg-warning text-dark">{{ p['stock_quantity'] }}</span>
+                            {% else %}
+                                <span class="badge bg-success bg-opacity-10 text-success fw-bold">{{ p['stock_quantity'] }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ p['unit'] }}</td>
+                        <td class="text-end pe-3">
+                            <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editModal{{ p['id'] }}">
+                                <i class="fa-solid fa-pen-to-square"></i> Sửa
+                            </button>
+                            <form action="{{ url_for('product_delete', id=p['id']) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="fa-solid fa-trash"></i> Xóa
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <!-- Edit Product Modal -->
+                    <div class="modal fade" id="editModal{{ p['id'] }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <form action="{{ url_for('product_edit', id=p['id']) }}" method="POST">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title fw-bold"><i class="fa-solid fa-pen-to-square text-primary me-2"></i> Chỉnh Sửa Sản Phẩm: {{ p['code'] }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-8">
+                                                <label class="form-label fw-bold">Tên sản phẩm *</label>
+                                                <input type="text" class="form-control" name="name" value="{{ p['name'] }}" required>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold">Danh mục</label>
+                                                <select class="form-select" name="category_id">
+                                                    <option value="">-- Chọn danh mục --</option>
+                                                    {% for cat in categories %}
+                                                    <option value="{{ cat['id'] }}" {% if p['category_id'] == cat['id'] %}selected{% endif %}>{{ cat['name'] }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold">Giá bán (VNĐ) *</label>
+                                                <input type="number" step="1000" class="form-control" name="price" value="{{ p['price'] }}" required>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold">Giá vốn nhập (VNĐ)</label>
+                                                <input type="number" step="1000" class="form-control" name="cost_price" value="{{ p['cost_price'] }}">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label fw-bold">Tồn kho</label>
+                                                <input type="number" class="form-control" name="stock_quantity" value="{{ p['stock_quantity'] }}" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label fw-bold">Đơn vị</label>
+                                                <input type="text" class="form-control" name="unit" value="{{ p['unit'] }}">
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label fw-bold">Mô tả sản phẩm</label>
+                                                <textarea class="form-control" name="description" rows="2">{{ p['description'] }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i> Lưu thay đổi</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-5">Không tìm thấy sản phẩm nào phù hợp.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="{{ url_for('product_add') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-box-open text-success me-2"></i> Thêm Sản Phẩm Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Mã sản phẩm *</label>
+                            <input type="text" class="form-control" name="code" placeholder="Ví dụ: SP009" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Tên sản phẩm *</label>
+                            <input type="text" class="form-control" name="name" placeholder="Tên sản phẩm..." required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Danh mục</label>
+                            <select class="form-select" name="category_id">
+                                <option value="">-- Chọn danh mục --</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat['id'] }}">{{ cat['name'] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Giá bán (VNĐ) *</label>
+                            <input type="number" step="1000" class="form-control" name="price" placeholder="0" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Giá vốn nhập (VNĐ)</label>
+                            <input type="number" step="1000" class="form-control" name="cost_price" placeholder="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Số lượng tồn kho ban đầu *</label>
+                            <input type="number" class="form-control" name="stock_quantity" value="10" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Đơn vị tính</label>
+                            <input type="text" class="form-control" name="unit" value="Cái">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Mô tả sản phẩm</label>
+                            <textarea class="form-control" name="description" rows="2" placeholder="Ghi chú chi tiết về sản phẩm..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-plus me-1"></i> Thêm sản phẩm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

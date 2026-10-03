@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}Tổng Quan - Hệ Thống Quản Lý Bán Hàng{% endblock %}
+{% block header_title %}Tổng Quan Bán Hàng & Hoạt Động{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <!-- Total Revenue Card -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card metric-card shadow-sm border-0 border-start border-4 border-success h-100">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-bold text-uppercase">Doanh Thu Tích Lũy</span>
+                    <h3 class="fw-bold text-success mb-0 mt-1">{{ total_revenue | currency_vnd }}</h3>
+                </div>
+                <div class="metric-icon bg-success bg-opacity-10 text-success">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Orders Card -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card metric-card shadow-sm border-0 border-start border-4 border-primary h-100">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-bold text-uppercase">Tổng Đơn Hàng</span>
+                    <h3 class="fw-bold text-primary mb-0 mt-1">{{ total_orders }}</h3>
+                </div>
+                <div class="metric-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Products Card -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card metric-card shadow-sm border-0 border-start border-4 border-info h-100">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-bold text-uppercase">Tổng Sản Phẩm</span>
+                    <h3 class="fw-bold text-info mb-0 mt-1">{{ total_products }}</h3>
+                </div>
+                <div class="metric-icon bg-info bg-opacity-10 text-info">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock Warning Card -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card metric-card shadow-sm border-0 border-start border-4 border-warning h-100">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-bold text-uppercase">Cảnh Báo Sắp Hết Kho</span>
+                    <h3 class="fw-bold text-warning mb-0 mt-1">{{ low_stock_count }} <small class="fs-6 fw-normal text-muted">sản phẩm</small></h3>
+                </div>
+                <div class="metric-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Quick Sales Call to Action & Chart -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-chart-bar text-primary me-2"></i> Top 5 Sản Phẩm Bán Chạy Nhất</h6>
+                <a href="{{ url_for('order_create') }}" class="btn btn-warning btn-sm fw-bold">
+                    <i class="fa-solid fa-cart-plus me-1"></i> Tạo Đơn Mới
+                </a>
+            </div>
+            <div class="card-body">
+                <canvas id="topProductsChart" style="max-height: 280px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Products Summary List -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-ranking-star text-warning me-2"></i> Chi Tiết Top Sản Phẩm</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for item in top_products %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <div>
+                            <div class="fw-semibold text-dark">{{ item['name'] }}</div>
+                            <small class="text-muted">Đã bán: <strong class="text-primary">{{ item['total_qty'] }}</strong> sản phẩm</small>
+                        </div>
+                        <span class="badge bg-success bg-opacity-10 text-success fw-bold px-3 py-2">
+                            {{ item['total_val'] | currency_vnd }}
+                        </span>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">Chưa có dữ liệu bán hàng</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Orders Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> Đơn Hàng Gần Đây</h6>
+        <a href="{{ url_for('orders') }}" class="btn btn-outline-primary btn-sm">Xem tất cả <i class="fa-solid fa-arrow-right ms-1"></i></a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-3">Mã Đơn Hàng</th>
+                        <th>Khách Hàng</th>
+                        <th>Thời Gian</th>
+                        <th>Tổng Tiền</th>
+                        <th>Thanh Toán</th>
+                        <th>Trạng Thái</th>
+                        <th class="text-end pe-3">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td class="ps-3 fw-bold text-primary">{{ order['order_code'] }}</td>
+                        <td>{{ order['customer_name'] or 'Khách lẻ' }}</td>
+                        <td class="small text-muted">{{ order['created_at'] | datetime_format }}</td>
+                        <td class="fw-bold text-dark">{{ order['total_amount'] | currency_vnd }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ order['payment_method'] }}</span></td>
+                        <td>
+                            {% if order['status'] == 'Hoàn thành' %}
+                                <span class="badge bg-success">Hoàn thành</span>
+                            {% elif order['status'] == 'Đang xử lý' %}
+                                <span class="badge bg-warning text-dark">Đang xử lý</span>
+                            {% else %}
+                                <span class="badge bg-danger">Đã hủy</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-3">
+                            <a href="{{ url_for('order_detail', id=order['id']) }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fa-solid fa-eye"></i> Chi tiết
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">Chưa có đơn hàng nào</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const topProdData = {
+        labels: [{% for item in top_products %}"{{ item['name'] }}",{% endfor %}],
+        datasets: [{
+            label: 'Số lượng bán',
+            data: [{% for item in top_products %}{{ item['total_qty'] }},{% endfor %}],
+            backgroundColor: ['#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6'],
+            borderRadius: 6
+        }]
+    };
+
+    const ctx = document.getElementById('topProductsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: topProdData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+</script>
+{% endblock %}

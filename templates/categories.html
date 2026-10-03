@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Quản Lý Danh Mục - Sales System{% endblock %}
+{% block header_title %}Quản Lý Danh Mục Sản Phẩm{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Add Category Form -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-folder-plus text-primary me-2"></i> Thêm Danh Mục Mới</h6>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('categories') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tên danh mục *</label>
+                        <input type="text" class="form-control" name="name" placeholder="Ví dụ: Thiết bị thông minh" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mô tả</label>
+                        <textarea class="form-control" name="description" rows="3" placeholder="Mô tả ngắn gọn..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">
+                        <i class="fa-solid fa-plus me-1"></i> Tạo danh mục
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category List Card -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-tags text-primary me-2"></i> Danh Sách Danh Mục</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-3">ID</th>
+                                <th>Tên Danh Mục</th>
+                                <th>Mô Tả</th>
+                                <th>Số SP</th>
+                                <th class="text-end pe-3">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cat in categories %}
+                            <tr>
+                                <td class="ps-3 text-muted">#{{ cat['id'] }}</td>
+                                <td class="fw-bold text-dark">{{ cat['name'] }}</td>
+                                <td class="text-muted small">{{ cat['description'] or '-' }}</td>
+                                <td><span class="badge bg-primary bg-opacity-10 text-primary">{{ cat['product_count'] }} sản phẩm</span></td>
+                                <td class="text-end pe-3">
+                                    <form action="{{ url_for('category_delete', id=cat['id']) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa danh mục này?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fa-solid fa-trash"></i> Xóa
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">Chưa có danh mục nào.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

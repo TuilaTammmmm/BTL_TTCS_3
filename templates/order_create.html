@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}Tạo Đơn Hàng Mới (POS) - Sales System{% endblock %}
+{% block header_title %}Tạo Đơn Hàng Mới (POS){% endblock %}
+
+{% block content %}
+<form action="{{ url_for('order_create') }}" method="POST" id="order-form">
+    <div class="row g-4">
+        <!-- Products Selection Panel -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-cart-shopping text-warning me-2"></i> Danh Sách Sản Phẩm Đặt Hàng</h6>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="add-item-btn">
+                        <i class="fa-solid fa-plus me-1"></i> Thêm dòng sản phẩm
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0" id="items-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 45%;" class="ps-3">Sản phẩm</th>
+                                    <th style="width: 20%;">Đơn giá (VNĐ)</th>
+                                    <th style="width: 15%;">Số lượng</th>
+                                    <th style="width: 20%;">Thành tiền</th>
+                                    <th style="width: 50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="items-body">
+                                <!-- Dynamic rows inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checkout Summary Sidebar -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-calculator text-success me-2"></i> Thông Tin Thanh Toán</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Khách hàng</label>
+                        <select name="customer_id" class="form-select">
+                            <option value="">-- Khách lẻ (Không lưu tên) --</option>
+                            {% for c in customers %}
+                            <option value="{{ c['id'] }}">{{ c['name'] }} - {{ c['phone'] or 'Chưa có SĐT' }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Hình thức thanh toán</label>
+                        <select name="payment_method" class="form-select">
+                            <option value="Tiền mặt">Tiền mặt</option>
+                            <option value="Chuyển khoản">Chuyển khoản / QR Banking</option>
+                            <option value="Quẹt thẻ">Quẹt thẻ POS</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ghi chú đơn hàng</label>
+                        <textarea name="note" class="form-control" rows="2" placeholder="Ghi chú giao hàng, khuyến mãi..."></textarea>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold text-secondary">Tổng Tiền Thanh Toán:</span>
+                        <h3 class="fw-bold text-success mb-0" id="grand-total-display">0 đ</h3>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning btn-lg w-100 fw-bold shadow-sm">
+                        <i class="fa-solid fa-circle-check me-2"></i> HOÀN TẤT ĐƠN HÀNG
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- JS Product Template data -->
+<script>
+    const productsData = [
+        {% for p in products %}
+        { id: {{ p['id'] }}, name: "{{ p['name'] }}", code: "{{ p['code'] }}", price: {{ p['price'] }}, stock: {{ p['stock_quantity'] }}, unit: "{{ p['unit'] }}" },
+        {% endfor %}
+    ];
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const itemsBody = document.getElementById('items-body');
+    const addItemBtn = document.getElementById('add-item-btn');
+    const grandTotalDisplay = document.getElementById('grand-total-display');
+
+    function createRow(selectedProductId = null) {
+        const tr = document.createElement('tr');
+        
+        let optionsHtml = '<option value="">-- Chọn sản phẩm --</option>';
+        productsData.forEach(p => {
+            optionsHtml += `<option value="${p.id}" data-price="${p.price}" data-stock="${p.stock}">[${p.code}] ${p.name} (Còn: ${p.stock} ${p.unit})</option>`;
+        });
+
+        tr.innerHTML = `
+            <td class="ps-3">
+                <select name="product_id[]" class="form-select product-select" required>
+                    ${optionsHtml}
+                </select>
+            </td>
+            <td>
+                <input type="number" name="price[]" class="form-control price-input" value="0" readonly>
+            </td>
+            <td>
+                <input type="number" name="quantity[]" class="form-control qty-input" value="1" min="1" required>
+            </td>
+            <td>
+                <span class="fw-bold text-primary subtotal-display">0 đ</span>
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger remove-row-btn"><i class="fa-solid fa-xmark"></i></button>
+            </td>
+        `;
+
+        itemsBody.appendChild(tr);
+
+        // Bind events
+        const selectEl = tr.querySelector('.product-select');
+        const priceInput = tr.querySelector('.price-input');
+        const qtyInput = tr.querySelector('.qty-input');
+        const subtotalDisplay = tr.querySelector('.subtotal-display');
+        const removeBtn = tr.querySelector('.remove-row-btn');
+
+        selectEl.addEventListener('change', function() {
+            const selectedOpt = selectEl.options[selectEl.selectedIndex];
+            if (selectedOpt.value) {
+                const price = parseFloat(selectedOpt.getAttribute('data-price')) || 0;
+                const maxStock = parseInt(selectedOpt.getAttribute('data-stock')) || 1;
+                priceInput.value = price;
+                qtyInput.max = maxStock;
+                if (parseInt(qtyInput.value) > maxStock) qtyInput.value = maxStock;
+            } else {
+                priceInput.value = 0;
+            }
+            updateCalculations();
+        });
+
+        qtyInput.addEventListener('input', updateCalculations);
+        removeBtn.addEventListener('click', function() {
+            if (itemsBody.children.length > 1) {
+                tr.remove();
+                updateCalculations();
+            } else {
+                alert('Đơn hàng phải có ít nhất 1 dòng sản phẩm!');
+            }
+        });
+
+        if (selectedProductId) {
+            selectEl.value = selectedProductId;
+            selectEl.dispatchEvent(new Event('change'));
+        }
+    }
+
+    function formatVND(num) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num).replace('₫', 'đ');
+    }
+
+    function updateCalculations() {
+        let grandTotal = 0;
+        const rows = itemsBody.querySelectorAll('tr');
+        rows.forEach(r => {
+            const price = parseFloat(r.querySelector('.price-input').value) || 0;
+            const qty = parseInt(r.querySelector('.qty-input').value) || 0;
+            const subtotal = price * qty;
+            r.querySelector('.subtotal-display').innerText = formatVND(subtotal);
+            grandTotal += subtotal;
+        });
+        grandTotalDisplay.innerText = formatVND(grandTotal);
+    }
+
+    addItemBtn.addEventListener('click', () => createRow());
+
+    // Initialize with 1 empty row
+    createRow();
+</script>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Quản Lý Khách Hàng - Sales System{% endblock %}
+{% block header_title %}Quản Lý Danh Sách Khách Hàng{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Add Customer Form -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-user-plus text-success me-2"></i> Thêm Khách Hàng Mới</h6>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('customers') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Họ và tên *</label>
+                        <input type="text" class="form-control" name="name" placeholder="Nguyễn Văn A" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Số điện thoại</label>
+                        <input type="text" class="form-control" name="phone" placeholder="0901234567">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Email</label>
+                        <input type="email" class="form-control" name="email" placeholder="khachhang@example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Địa chỉ</label>
+                        <textarea class="form-control" name="address" rows="2" placeholder="Địa chỉ giao hàng..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 fw-bold">
+                        <i class="fa-solid fa-plus me-1"></i> Thêm Khách Hàng
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Directory Table -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-address-book text-primary me-2"></i> Danh Sách Khách Hàng</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-3">Họ Tên Khách Hàng</th>
+                                <th>Số Điện Thoại</th>
+                                <th>Email / Địa Chỉ</th>
+                                <th>Số Đơn</th>
+                                <th>Tổng Chi Tiêu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in customers %}
+                            <tr>
+                                <td class="ps-3">
+                                    <div class="fw-bold text-dark">{{ c['name'] }}</div>
+                                    <small class="text-muted">ID: #{{ c['id'] }}</small>
+                                </td>
+                                <td class="fw-semibold text-primary"><i class="fa-solid fa-phone me-1 text-muted"></i>{{ c['phone'] or '-' }}</td>
+                                <td>
+                                    {% if c['email'] %}<div class="small text-dark"><i class="fa-solid fa-envelope me-1 text-muted"></i>{{ c['email'] }}</div>{% endif %}
+                                    {% if c['address'] %}<div class="small text-muted text-truncate" style="max-width: 200px;"><i class="fa-solid fa-location-dot me-1 text-muted"></i>{{ c['address'] }}</div>{% endif %}
+                                </td>
+                                <td><span class="badge bg-secondary">{{ c['total_orders'] }} đơn</span></td>
+                                <td class="fw-bold text-success">{{ c['total_spent'] | currency_vnd }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">Chưa có khách hàng nào trong hệ thống.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

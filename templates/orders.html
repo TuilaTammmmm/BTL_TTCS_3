@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Danh Sách Đơn Hàng - Sales System{% endblock %}
+{% block header_title %}Quản Lý Đơn Hàng & Hóa Đơn{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-receipt text-primary me-2"></i> Tất Cả Đơn Hàng</h5>
+    <a href="{{ url_for('order_create') }}" class="btn btn-warning fw-bold shadow-sm">
+        <i class="fa-solid fa-cart-plus me-1"></i> Tạo Đơn Hàng Mới (POS)
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-3">Mã Đơn Hàng</th>
+                        <th>Khách Hàng</th>
+                        <th>Thời Gian</th>
+                        <th>Nhân Viên</th>
+                        <th>Thanh Toán</th>
+                        <th>Tổng Tiền</th>
+                        <th>Trạng Thái</th>
+                        <th class="text-end pe-3">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td class="ps-3 fw-bold text-primary">{{ order['order_code'] }}</td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ order['customer_name'] or 'Khách lẻ' }}</div>
+                            {% if order['customer_phone'] %}<small class="text-muted"><i class="fa-solid fa-phone me-1"></i>{{ order['customer_phone'] }}</small>{% endif %}
+                        </td>
+                        <td class="small text-muted">{{ order['created_at'] | datetime_format }}</td>
+                        <td class="small fw-semibold text-secondary">{{ order['staff_name'] or 'Hệ thống' }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ order['payment_method'] }}</span></td>
+                        <td class="fw-bold text-success fs-6">{{ order['total_amount'] | currency_vnd }}</td>
+                        <td>
+                            {% if order['status'] == 'Hoàn thành' %}
+                                <span class="badge bg-success">Hoàn thành</span>
+                            {% elif order['status'] == 'Đang xử lý' %}
+                                <span class="badge bg-warning text-dark">Đang xử lý</span>
+                            {% else %}
+                                <span class="badge bg-danger">Đã hủy</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-3">
+                            <a href="{{ url_for('order_detail', id=order['id']) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fa-solid fa-file-invoice"></i> Xem & In Hóa Đơn
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-5">Chưa có đơn hàng nào trong hệ thống.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
