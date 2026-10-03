@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# Database (optional - un-comment if you don't want to commit local db)
+# *.db
