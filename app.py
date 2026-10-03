@@ -5,11 +5,15 @@ from database import (
     get_db_connection, init_db, uuid7, now_iso,
     get_user_role_in_workspace, check_workspace_permission, Role
 )
+from api import api as api_blueprint
 import os
 from datetime import datetime, date
 
 app = Flask(__name__)
 app.secret_key = 'taskmaster-super-secret-key-btl-ttcs3'
+
+# Register API Blueprint (JWT + RBAC REST API)
+app.register_blueprint(api_blueprint)
 
 # Ensure database exists on startup
 if not os.path.exists(os.path.join(os.path.dirname(__file__), 'app_data.db')):
